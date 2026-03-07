@@ -1,0 +1,25 @@
+# Application Configuration
+spring.application.name=sport-portal
+
+# Database Configuration (Aiven Cloud MySQL)
+spring.datasource.url=jdbc:mysql://<YOUR_HOST>:<PORT>/defaultdb?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=<YOUR_USERNAME>
+spring.datasource.password=<YOUR_PASSWORD>
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# Server
+server.address=0.0.0.0
+server.port=8080
+
+# JWT Configuration
+app.jwt.secret=<YOUR_JWT_SECRET>
+app.jwt.expiration-ms=86400000
+
+# CORS
+app.cors.allowed-origins=http://localhost:3000,http://localhost:5173

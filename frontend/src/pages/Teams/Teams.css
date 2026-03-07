@@ -1,0 +1,336 @@
+/* ============================================
+   TEAMS PAGE - PROFESSIONAL DESIGN
+   ============================================ */
+
+@import '../../styles/shared.css';
+
+.teams-page {
+  animation: pageEnter 0.35s ease-out;
+}
+
+/* Club Selector */
+.club-selector {
+  margin-bottom: var(--space-8);
+}
+
+.selector-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+}
+
+.club-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.club-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.club-chip:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.club-chip.active {
+  background: linear-gradient(135deg, var(--primary-500), var(--accent-500));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.club-chip svg {
+  font-size: 1rem;
+}
+
+.no-clubs {
+  color: var(--text-tertiary);
+  font-size: 0.9375rem;
+  font-style: italic;
+}
+
+/* Teams List */
+.teams-list {
+  margin-top: var(--space-6);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.section-header h2 {
+  color: var(--text-primary);
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.team-count {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+/* Team Card */
+.team-card {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.team-card:hover {
+  border-color: var(--border-default);
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.team-header:hover {
+  background: var(--bg-hover);
+}
+
+.team-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-name {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.team-desc {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0 0 var(--space-2);
+}
+
+.team-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.team-meta span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+}
+
+.team-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Expanded Team */
+.team-expanded {
+  padding: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+}
+
+.members-section h4,
+.add-member-section h4 {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-3);
+}
+
+.members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.member-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+}
+
+.member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary-500), var(--accent-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.member-avatar.small {
+  width: 24px;
+  height: 24px;
+  font-size: 0.6875rem;
+}
+
+.member-name {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.captain-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning-500);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error-500);
+}
+
+.no-members {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Add Member Section */
+.add-member-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.add-member-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.add-member-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary-500);
+  color: var(--primary-400);
+}
+
+.add-member-btn svg {
+  color: var(--primary-400);
+}
+
+/* Form Info */
+.form-info {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--text-tertiary);
+}
+
+.empty-state svg {
+  font-size: 3rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.empty-state span {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin: var(--space-2) 0 0;
+  font-size: 0.9375rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .team-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  
+  .team-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

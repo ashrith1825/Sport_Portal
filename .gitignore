@@ -1,0 +1,19 @@
+# Backend
+backend/target/
+backend/src/main/resources/application.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+temp.txt

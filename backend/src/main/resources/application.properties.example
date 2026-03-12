@@ -1,10 +1,14 @@
 # Application Configuration
 spring.application.name=sport-portal
 
-# Database Configuration (Aiven Cloud MySQL)
-spring.datasource.url=jdbc:mysql://<YOUR_HOST>:<PORT>/defaultdb?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-spring.datasource.username=<YOUR_USERNAME>
-spring.datasource.password=<YOUR_PASSWORD>
+# Database Configuration (via Environment Variables)
+# Set these in Render Environment Variables:
+#   DB_URL=jdbc:mysql://your-host:port/defaultdb?sslMode=REQUIRED
+#   DB_USERNAME=your-username
+#   DB_PASSWORD=your-password
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 # JPA / Hibernate
@@ -13,13 +17,18 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 spring.jpa.properties.hibernate.format_sql=true
 
-# Server
+# Connection Pool (HikariCP)
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.idle-timeout=30000
+
+# Server (Render assigns PORT dynamically)
 server.address=0.0.0.0
-server.port=8080
+server.port=${PORT:8080}
 
 # JWT Configuration
-app.jwt.secret=<YOUR_JWT_SECRET>
+app.jwt.secret=${JWT_SECRET:your-jwt-secret-here}
 app.jwt.expiration-ms=86400000
 
 # CORS
-app.cors.allowed-origins=http://localhost:3000,http://localhost:5173
+app.cors.allowed-origins=${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}

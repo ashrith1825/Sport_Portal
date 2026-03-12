@@ -14,14 +14,11 @@ RUN mvn clean package -DskipTests -B
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S banking && adduser -S banking -G banking
-USER banking
+RUN addgroup -S sportportal && adduser -S sportportal -G sportportal
+USER sportportal
 
 COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -63,7 +63,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://sport-portal-oqdusu3i4-ashrithreddy1825-3778s-projects.vercel.app"
+                "https://sport-portal-oqdusu3i4-ashrithreddy1825-3778s-projects.vercel.app",
+                "https://sport-portal-omega.vercel.app"
         ));
 
         configuration.setAllowedMethods(List.of(

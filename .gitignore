@@ -1,6 +1,5 @@
 # Backend
 backend/target/
-backend/src/main/resources/application.properties
 
 # Frontend
 frontend/node_modules/

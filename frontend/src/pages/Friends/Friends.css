@@ -43,16 +43,16 @@
 }
 
 .friend-code-card.your-code {
-  background: linear-gradient(135deg, rgba(0, 200, 255, 0.08), rgba(99, 102, 241, 0.08));
-  border-color: rgba(0, 200, 255, 0.15);
+  background: linear-gradient(135deg, rgba(200, 0, 0, 0.06), rgba(17, 17, 17, 0.04));
+  border-color: rgba(200, 0, 0, 0.12);
 }
 
 .friend-code-icon {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
-  background: rgba(0, 200, 255, 0.15);
-  color: var(--primary-400);
+  background: rgba(200, 0, 0, 0.08);
+  color: var(--primary-500);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,7 +105,7 @@
 
 .btn-copy:hover {
   background: var(--bg-elevated);
-  color: var(--primary-400);
+  color: var(--primary-500);
   border-color: var(--primary-500);
 }
 

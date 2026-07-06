@@ -1,41 +1,16 @@
 # ==========================================
-# Stage 1 — Build Spring Boot Application
+# Node.js + Express Runtime
 # ==========================================
-FROM maven:3.9-eclipse-temurin-17-alpine AS builder
-
-WORKDIR /build
-
-# Copy Maven configuration
-COPY pom.xml .
-
-# Download dependencies first (better caching)
-RUN mvn -B dependency:go-offline
-
-# Copy source code
-COPY src ./src
-
-# Build application
-RUN mvn -B clean package -DskipTests
-
-
-# ==========================================
-# Stage 2 — Run Application
-# ==========================================
-FROM eclipse-temurin:17-jre-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -S sportportal && adduser -S sportportal -G sportportal
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev
 
-# Copy built jar
-COPY --from=builder /build/target/*.jar app.jar
+COPY src ./src
 
-# Use non-root user
-USER sportportal
-
-# Expose port used by Spring Boot
+ENV PORT=8080
 EXPOSE 8080
 
-# Start Spring Boot application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+CMD ["npm", "start"]

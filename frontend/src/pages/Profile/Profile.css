@@ -67,8 +67,8 @@
   display: inline-block;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, rgba(0, 200, 255, 0.15), rgba(99, 102, 241, 0.15));
-  color: var(--primary-400);
+  background: rgba(200, 0, 0, 0.08);
+  color: var(--primary-500);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -100,10 +100,10 @@
 
 /* Friend Code Display */
 .friend-code-display {
-  background: linear-gradient(135deg, rgba(0, 200, 255, 0.08), rgba(99, 102, 241, 0.08));
+  background: linear-gradient(135deg, rgba(200, 0, 0, 0.05), rgba(17, 17, 17, 0.03));
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  border: 1px solid rgba(0, 200, 255, 0.15);
+  border: 1px solid rgba(200, 0, 0, 0.12);
   margin-top: var(--space-5);
 }
 

@@ -1,10 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import {
-  FiHome, FiCalendar, FiUsers, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus,
+  FiHome, FiCalendar, FiUsers, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn,
 } from 'react-icons/fi';
 import { useState } from 'react';
-import logo from '../../assets/images.jpeg';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -18,23 +17,30 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  const isHomeRoute = (path) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path));
 
-  const navLinks = [
-    { to: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
+  const basePublicLinks = [
     { to: '/events', icon: <FiCalendar />, label: 'Events' },
     { to: '/clubs', icon: <FiShield />, label: 'Clubs' },
     { to: '/teams', icon: <FiUsers />, label: 'Teams' },
     { to: '/journals', icon: <FiBookOpen />, label: 'Journals' },
-    { to: '/friends', icon: <FiUserPlus />, label: 'Friends' },
   ];
+
+  // Show `Home` only for guests. When logged in, provide Dashboard via privateLinks.
+  const publicLinks = user ? basePublicLinks : [{ to: '/', icon: <FiHome />, label: 'Home' }, ...basePublicLinks];
+
+  const isActive = (path) => isHomeRoute(path);
+
+  const privateLinks = user ? [
+    { to: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
+    { to: '/friends', icon: <FiUserPlus />, label: 'Friends' },
+  ] : [];
 
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/dashboard" className="navbar-logo">
-          <img src={logo} alt="SportPortal" className="logo-img" />
-          <span className="logo-text">SportPortal</span>
+        <Link to={user ? '/dashboard' : '/'} className="navbar-logo">
+          <span className="logo-text">Sport Portal</span>
         </Link>
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
           {menuOpen ? <FiX /> : <FiMenu />}
@@ -42,7 +48,7 @@ export default function Navbar() {
       </div>
 
       <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
-        {navLinks.map((link) => (
+        {[...publicLinks, ...privateLinks].map((link) => (
           <Link
             key={link.to}
             to={link.to}
@@ -67,6 +73,12 @@ export default function Navbar() {
               <span>Logout</span>
             </button>
           </>
+        )}
+        {!user && (
+          <Link to="/login" className="btn-login" onClick={() => setMenuOpen(false)}>
+            <FiLogIn />
+            <span>Login</span>
+          </Link>
         )}
       </div>
     </nav>

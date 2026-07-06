@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { getJournals, searchJournals, createJournal, deleteJournal } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiTrash2, FiX, FiEdit3, FiClock } from 'react-icons/fi';
@@ -9,11 +8,10 @@ import '../Events/Events.css';
 
 export default function Journals() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [showModal, setShowModal] = useState(searchParams.get('create') === 'true');
+  const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', content: '', sportType: '', imageUrl: '' });
 
   const fetchJournals = async () => {
@@ -37,6 +35,10 @@ export default function Journals() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please log in to write a journal');
+      return;
+    }
     try {
       await createJournal(form);
       toast.success('Journal published!');
@@ -50,6 +52,10 @@ export default function Journals() {
   };
 
   const handleDelete = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete a journal');
+      return;
+    }
     if (!confirm('Delete this journal?')) return;
     try {
       await deleteJournal(id);

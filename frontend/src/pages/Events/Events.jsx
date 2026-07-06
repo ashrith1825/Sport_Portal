@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { getEvents, searchEvents, createEvent, joinEvent, leaveEvent, deleteEvent } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiMapPin, FiClock, FiUsers, FiTrash2, FiX, FiList, FiMap } from 'react-icons/fi';
@@ -20,12 +19,11 @@ L.Icon.Default.mergeOptions({
 
 export default function Events() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
-  const [showModal, setShowModal] = useState(searchParams.get('create') === 'true');
+  const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', sportType: '', location: '', eventDate: '', endDate: '', maxParticipants: '', latitude: '', longitude: '' });
 
   const fetchEvents = async () => {
@@ -49,6 +47,10 @@ export default function Events() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please log in to create an event');
+      return;
+    }
     try {
       const payload = { ...form };
       if (payload.maxParticipants) payload.maxParticipants = parseInt(payload.maxParticipants);
@@ -69,6 +71,10 @@ export default function Events() {
   };
 
   const handleJoin = async (id) => {
+    if (!user) {
+      toast.error('Please log in to join an event');
+      return;
+    }
     try {
       await joinEvent(id);
       toast.success('Joined event!');
@@ -79,6 +85,10 @@ export default function Events() {
   };
 
   const handleLeave = async (id) => {
+    if (!user) {
+      toast.error('Please log in to leave an event');
+      return;
+    }
     try {
       await leaveEvent(id);
       toast.success('Left event');
@@ -89,6 +99,10 @@ export default function Events() {
   };
 
   const handleDelete = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete an event');
+      return;
+    }
     if (!confirm('Delete this event?')) return;
     try {
       await deleteEvent(id);

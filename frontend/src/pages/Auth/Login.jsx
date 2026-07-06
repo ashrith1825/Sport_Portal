@@ -27,12 +27,39 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-promo">
+        <span className="auth-eyebrow">Welcome back</span>
+        <h1>Sign in to manage your sports world from one place.</h1>
+        <p>
+          Keep your clubs, events, teams, journals, and friends connected in a
+          polished workspace built for serious sports communities.
+        </p>
+
+        <div className="auth-metrics">
+          <article>
+            <strong>Clubs</strong>
+            <span>Organize communities</span>
+          </article>
+          <article>
+            <strong>Events</strong>
+            <span>Plan match days</span>
+          </article>
+          <article>
+            <strong>Teams</strong>
+            <span>Manage rosters</span>
+          </article>
+          <article>
+            <strong>Journals</strong>
+            <span>Share progress</span>
+          </article>
+        </div>
+      </div>
+
       <div className="auth-card">
         <div className="auth-header">
-          <span className="auth-logo">⚽</span>
-          <h1>Welcome Back</h1>
-          <p>Sign in to your SportPortal account</p>
+          <h1>Welcome back</h1>
+          <p>Use your Sport Portal account to continue.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -64,7 +91,7 @@ export default function Login() {
         </form>
 
         <p className="auth-footer">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          <Link to="/">Home</Link> · Don't have an account? <Link to="/register">Sign up</Link>
         </p>
       </div>
     </div>

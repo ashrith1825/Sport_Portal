@@ -7,10 +7,20 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 const app = express();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,https://sport-portal-omega.vercel.app')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'https://sport-portal-omega.vercel.app',
+  'https://sport-portal-714wnnjsg-ashrithreddy1825-3778s-projects.vercel.app',
+];
+
+const allowedOrigins = [
+  ...new Set([
+    ...defaultOrigins,
+    ...(process.env.ALLOWED_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+  ]),
+];
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: allowedOrigins, credentials: true }));

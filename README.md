@@ -455,6 +455,8 @@ Backend (Render.com)
         - `MONGODB_DB` — database name
         - `JWT_SECRET` — random secret for JWT signing
         - `ALLOWED_ORIGINS` — e.g. `https://your-frontend.vercel.app`
+
+   > IMPORTANT: MongoDB Atlas also blocks physical connections unless Atlas Network Access allows your deployment host. For Render, either allow Render IPs or temporarily add `0.0.0.0/0`.
 4. Build Command: leave blank (Render runs install automatically) or `npm install`.
 5. Start Command: `npm start` (server entry is `src/server.js`).
 6. After deploy, note the service URL and set `VITE_API_BASE_URL` in your frontend project to `https://<your-backend>/api`.

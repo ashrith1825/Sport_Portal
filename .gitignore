@@ -1,11 +1,13 @@
 # Backend
 backend/target/
+backend/node_modules/
+backend/.env
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.env
-
+.env
 # IDE
 .idea/
 *.iml

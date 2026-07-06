@@ -32,7 +32,7 @@ The platform bridges the gap between fragmented sports communities by providing 
 - Connect with friends using unique friend codes
 - Share sports experiences through journal entries
 
-The application follows a modern full-stack architecture with a **Spring Boot** backend providing RESTful APIs secured with JWT authentication, and a **React** frontend delivering a responsive single-page application experience.
+The application follows a modern full-stack architecture with a **Node.js + Express** backend providing RESTful APIs secured with JWT authentication, and a **React** frontend delivering a responsive single-page application experience.
 
 ---
 
@@ -102,15 +102,14 @@ The sports community faces several challenges that Sport Portal aims to solve:
 ### Backend
 | Technology | Purpose |
 |------------|---------|
-| **Java 17** | Primary programming language |
-| **Spring Boot 3.3.6** | Web framework and application server |
-| **Spring Security** | Authentication and authorization |
-| **Spring Data JPA** | Database ORM with Hibernate |
-| **MySQL** | Relational database (Aiven Cloud hosted) |
-| **JWT (JJWT 0.12.5)** | Token-based authentication |
-| **BCrypt** | Password hashing |
-| **Lombok** | Boilerplate code reduction |
-| **Maven** | Build and dependency management |
+| **Node.js 20** | Runtime for the backend API |
+| **Express 5** | Web framework and application server |
+| **MongoDB Atlas** | Cloud document database |
+| **JWT (jsonwebtoken)** | Token-based authentication |
+| **bcryptjs** | Password hashing |
+| **Mongoose** | MongoDB models and queries |
+| **dotenv** | Environment variable management |
+| **Nodemon** | Developer hot-reload workflow |
 
 ### Frontend
 | Technology | Purpose |
@@ -148,26 +147,26 @@ The sports community faces several challenges that Sport Portal aims to solve:
 ┌─────────────────────────────────────────────────────────────────┐
 │                         BACKEND                                  │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │                   Spring Boot Application                │    │
+│  │                    Node / Express API                    │    │
 │  │                                                          │    │
 │  │  ┌──────────────┐     ┌──────────────┐                  │    │
-│  │  │  Controllers │ ◄── │   Security   │                  │    │
-│  │  │  (REST API)  │     │  (JWT Auth)  │                  │    │
+│  │  │  Routes      │ ◄── │   JWT Auth   │                  │    │
+│  │  │  (REST API)  │     │  Middleware  │                  │    │
 │  │  └──────┬───────┘     └──────────────┘                  │    │
 │  │         │                                                │    │
 │  │         ▼                                                │    │
 │  │  ┌──────────────┐                                        │    │
-│  │  │   Services   │  (Business Logic)                      │    │
+│  │  │ Controllers  │  (Request Handlers)                    │    │
 │  │  └──────┬───────┘                                        │    │
 │  │         │                                                │    │
 │  │         ▼                                                │    │
 │  │  ┌──────────────┐                                        │    │
-│  │  │ Repositories │  (Data Access Layer)                   │    │
+│  │  │  Mongoose    │  (Model Layer)                         │    │
 │  │  └──────┬───────┘                                        │    │
 │  │         │                                                │    │
 │  │         ▼                                                │    │
 │  │  ┌──────────────┐                                        │    │
-│  │  │   Entities   │  (JPA Models)                          │    │
+│  │  │ Collections  │  (Document Data)                      │    │
 │  │  └──────────────┘                                        │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -175,12 +174,12 @@ The sports community faces several challenges that Sport Portal aims to solve:
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        DATABASE                                  │
-│                   MySQL (Aiven Cloud)                           │
+│                  MongoDB Atlas                                   │
 │    ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐      │
-│    │ Users  │ │ Clubs  │ │ Teams  │ │ Events │ │Journals│      │
+│    │ users  │ │ clubs  │ │ teams  │ │ events │ │journals│      │
 │    └────────┘ └────────┘ └────────┘ └────────┘ └────────┘      │
 │                     ┌────────────┐                              │
-│                     │Friendships │                              │
+│                     │friendships │                              │
 │                     └────────────┘                              │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -190,29 +189,30 @@ The sports community faces several challenges that Sport Portal aims to solve:
 ┌─────────────────────────────────────────────────────────┐
 │                    Controller Layer                      │
 │         (REST Endpoints - Request/Response)             │
-│   AuthController | ClubController | EventController     │
-│   TeamController | FriendshipController | JournalController │
+│   auth.js | users.js | clubs.js | events.js             │
+│   teams.js | friends.js | journals.js                   │
 └───────────────────────────┬─────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────┐
 │                     Service Layer                        │
 │              (Business Logic & Validation)              │
-│    AuthService | ClubService | EventService | etc.      │
+│    controllers + shared validation helpers              │
 └───────────────────────────┬─────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   Repository Layer                       │
-│            (Data Access - Spring Data JPA)              │
-│   UserRepository | ClubRepository | EventRepository     │
+│            (Data Access - Mongoose models)              │
+│   model.find(...), populate(...), transactions         │
 └───────────────────────────┬─────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────┐
 │                     Entity Layer                         │
-│               (Database Models - Hibernate)             │
-│     User | Club | Team | Event | Journal | Friendship   │
+│               (MongoDB collections and API DTOs)        │
+│     users | clubs | teams | events | journals          │
+│     friendships                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -418,39 +418,34 @@ http://localhost:8080/api
 
 ## 🔄 Application Workflow
 
-### User Registration & Authentication Flow
+### Public First Flow
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │   User      │     │   Frontend   │     │   Backend   │
 └──────┬──────┘     └──────┬───────┘     └──────┬──────┘
        │                   │                    │
-       │  Fill Register    │                    │
-       │  Form             │                    │
-       ├──────────────────►│                    │
-       │                   │  POST /auth/register
+        │  Open Home Page   │                    │
+        │                   │  Public browse     │
+        ├──────────────────►│                    │
+        │                   │  GET /clubs        │
        │                   ├───────────────────►│
-       │                   │                    │ Validate Input
-       │                   │                    │ Hash Password
-       │                   │                    │ Generate FriendCode
-       │                   │                    │ Save User
-       │                   │    Success Response│
-       │                   │◄───────────────────┤
-       │   Redirect to     │                    │
-       │   Login           │                    │
-       │◄──────────────────┤                    │
-       │                   │                    │
-       │  Enter Credentials│                    │
-       ├──────────────────►│                    │
-       │                   │  POST /auth/login  │
+        │                   │                    │ Return featured data
+        │                   │    Browse Response  │
+        │                   │◄───────────────────┤
+        │                   │                    │
+        │  Sign in only     │                    │
+        │  when creating    │                    │
+        ├──────────────────►│                    │
+        │                   │  POST /auth/login  │
        │                   ├───────────────────►│
        │                   │                    │ Validate Credentials
        │                   │                    │ Generate JWT Token
        │                   │   JWT Token        │
        │                   │◄───────────────────┤
-       │                   │ Store in localStorage
-       │   Redirect to     │                    │
-       │   Dashboard       │                    │
-       │◄──────────────────┤                    │
+        │                   │ Store in localStorage
+        │   Redirect to     │                    │
+        │   Dashboard       │                    │
+        │◄──────────────────┤                    │
 ```
 
 ### Club Management Flow
@@ -576,13 +571,16 @@ http://localhost:8080/api
 |-------|-----------|-------------|-----------|
 | `/login` | Login.jsx | User authentication form | No |
 | `/register` | Register.jsx | New user registration | No |
+| `/` | Home.jsx | Public landing page with featured clubs, journals, and events | No |
 | `/dashboard` | Dashboard.jsx | Home with stats & quick actions | Yes |
-| `/events` | Events.jsx | Browse, create, manage events with map | Yes |
-| `/clubs` | Clubs.jsx | Browse, create, manage clubs | Yes |
-| `/teams` | Teams.jsx | View and manage team rosters | Yes |
-| `/journals` | Journals.jsx | Create and browse journals | Yes |
+| `/events` | Events.jsx | Browse public events and manage your own | No for browse, Yes for write actions |
+| `/clubs` | Clubs.jsx | Browse public clubs and manage your own | No for browse, Yes for write actions |
+| `/teams` | Teams.jsx | View public teams and manage your own | No for browse, Yes for write actions |
+| `/journals` | Journals.jsx | Browse public journals and manage your own | No for browse, Yes for write actions |
 | `/friends` | Friends.jsx | Manage friendships & requests | Yes |
 | `/profile` | Profile.jsx | User profile settings | Yes |
+
+---
 
 ---
 
@@ -631,10 +629,8 @@ http://localhost:8080/api
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- Java 17 or higher
 - Node.js 18 or higher
-- Maven 3.8+
-- MySQL database (local or cloud)
+- MongoDB Atlas cluster or compatible MongoDB instance
 
 ### Backend Setup
 ```bash
@@ -642,10 +638,10 @@ http://localhost:8080/api
 cd backend
 
 # Install dependencies
-mvn clean install
+npm install
 
 # Run the application
-mvn spring-boot:run
+npm start
 ```
 
 ### Frontend Setup
@@ -663,32 +659,32 @@ npm run dev
 ### Access the Application
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8080/api
+- **Demo login**: `sportdemo` / `Demo@12345`
 
 ---
 
 ## ⚙️ Configuration
 
-### Backend Configuration (application.properties)
-```properties
-# Server
-server.port=8080
-
-# Database
-spring.datasource.url=jdbc:mysql://<host>:<port>/<database>
-spring.datasource.username=<username>
-spring.datasource.password=<password>
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-
-# JWT
-jwt.secret=<32-character-hex-secret>
-jwt.expiration=86400000
-
-# CORS
-cors.allowed-origins=http://localhost:3000,http://localhost:5173
+### Backend Configuration (.env)
+```bash
+PORT=8080
+JWT_SECRET=<long-random-secret>
+MONGODB_URI=<mongodb-atlas-uri>
+MONGODB_DB=sport_portal
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
+
+The backend connects to MongoDB Atlas at startup and seeds demo clubs, events, teams, and journals when the users collection is empty.
+
+### Demo Account
+- Username: `sportdemo`
+- Email: `demo@sportportal.local`
+- Password: `Demo@12345`
+
+### Public Demo Flow
+- The landing page is public and focused on browsing first.
+- Guests can explore clubs, events, teams, and journals before signing in.
+- Create, join, update, and delete actions remain protected.
 
 ### Frontend Configuration
 ```javascript
@@ -703,18 +699,15 @@ const API_BASE_URL = 'http://localhost:8080/api';
 ```
 Sport_Portal/
 ├── README.md                    # Project documentation
-├── backend/                     # Spring Boot backend
-│   ├── pom.xml                  # Maven dependencies
-│   └── src/main/java/com/sportportal/
-│       ├── SportPortalApplication.java
-│       ├── config/              # Security & data config
-│       ├── controller/          # REST endpoints
-│       ├── dto/                 # Data transfer objects
-│       ├── entity/              # JPA entities
-│       ├── exception/           # Custom exceptions
-│       ├── repository/          # Data access layer
-│       ├── security/            # JWT & auth
-│       └── service/             # Business logic
+├── backend/                     # Node.js + Express backend
+│   ├── package.json             # Node dependencies and scripts
+│   └── src/
+│       ├── app.js               # Express app setup
+│       ├── server.js            # Server entry point
+│       ├── config/              # Database and schema bootstrap
+│       ├── controllers/         # Request handlers and DTO mappers
+│       ├── middleware/          # JWT auth and error handling
+│       └── routes/              # REST endpoints
 │
 └── frontend/                    # React frontend
     ├── package.json             # NPM dependencies

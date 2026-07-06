@@ -33,12 +33,39 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
+      <div className="auth-promo">
+        <span className="auth-eyebrow">Create your account</span>
+        <h1>Launch a profile that feels ready for a real product demo.</h1>
+        <p>
+          Register once, then build your network, join clubs, and start
+          publishing sports journals with a clean, modern interface.
+        </p>
+
+        <div className="auth-metrics">
+          <article>
+            <strong>Fast</strong>
+            <span>Simple onboarding</span>
+          </article>
+          <article>
+            <strong>Secure</strong>
+            <span>JWT authentication</span>
+          </article>
+          <article>
+            <strong>Social</strong>
+            <span>Friends and teams</span>
+          </article>
+          <article>
+            <strong>Polished</strong>
+            <span>Interview-ready UI</span>
+          </article>
+        </div>
+      </div>
+
       <div className="auth-card">
         <div className="auth-header">
-          <span className="auth-logo">⚽</span>
-          <h1>Create Account</h1>
-          <p>Join the SportPortal community</p>
+          <h1>Create account</h1>
+          <p>Join Sport Portal and start building your profile.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -106,7 +133,7 @@ export default function Register() {
         </form>
 
         <p className="auth-footer">
-          Already have an account? <Link to="/login">Sign in</Link>
+          <Link to="/">Home</Link> · Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>

@@ -4,7 +4,9 @@
 
 .layout {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background:
+    radial-gradient(circle at top left, rgba(200, 0, 0, 0.04), transparent 24%),
+    var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
@@ -14,7 +16,7 @@
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-8) var(--space-6) var(--space-10);
 }
 
 @media (max-width: 768px) {

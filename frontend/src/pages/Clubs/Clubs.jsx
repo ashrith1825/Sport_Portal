@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { getClubs, searchClubs, createClub, joinClub, leaveClub, deleteClub } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers } from 'react-icons/fi';
@@ -9,11 +8,10 @@ import '../Events/Events.css';
 
 export default function Clubs() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [showModal, setShowModal] = useState(searchParams.get('create') === 'true');
+  const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', description: '', sportType: '', logoUrl: '' });
 
   const fetchClubs = async () => {
@@ -37,6 +35,10 @@ export default function Clubs() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please log in to create a club');
+      return;
+    }
     try {
       await createClub(form);
       toast.success('Club created!');
@@ -50,6 +52,10 @@ export default function Clubs() {
   };
 
   const handleJoin = async (id) => {
+    if (!user) {
+      toast.error('Please log in to join a club');
+      return;
+    }
     try {
       await joinClub(id);
       toast.success('Joined club!');
@@ -60,6 +66,10 @@ export default function Clubs() {
   };
 
   const handleLeave = async (id) => {
+    if (!user) {
+      toast.error('Please log in to leave a club');
+      return;
+    }
     try {
       await leaveClub(id);
       toast.success('Left club');
@@ -70,6 +80,10 @@ export default function Clubs() {
   };
 
   const handleDelete = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete a club');
+      return;
+    }
     if (!confirm('Delete this club?')) return;
     try {
       await deleteClub(id);

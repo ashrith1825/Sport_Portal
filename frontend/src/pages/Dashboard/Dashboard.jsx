@@ -31,10 +31,10 @@ export default function Dashboard() {
   if (loading) return <LoadingSpinner />;
 
   const cards = [
-    { title: 'Upcoming Events', count: stats.events.length, icon: <FiCalendar />, to: '/events', color: '#00d2ff', items: stats.events.slice(0, 3) },
-    { title: 'My Clubs', count: stats.clubs.length, icon: <FiShield />, to: '/clubs', color: '#7c3aed', items: stats.clubs.slice(0, 3) },
-    { title: 'My Journals', count: stats.journals.length, icon: <FiBookOpen />, to: '/journals', color: '#10b981', items: stats.journals.slice(0, 3) },
-    { title: 'Friends', count: stats.friends.length, icon: <FiUsers />, to: '/friends', color: '#f59e0b', items: stats.friends.slice(0, 3) },
+    { title: 'Upcoming Events', count: stats.events.length, icon: <FiCalendar />, to: '/events', color: 'var(--primary-500)', items: stats.events.slice(0, 3) },
+    { title: 'My Clubs', count: stats.clubs.length, icon: <FiShield />, to: '/clubs', color: 'var(--accent-500)', items: stats.clubs.slice(0, 3) },
+    { title: 'My Journals', count: stats.journals.length, icon: <FiBookOpen />, to: '/journals', color: 'var(--gray-600)', items: stats.journals.slice(0, 3) },
+    { title: 'Friends', count: stats.friends.length, icon: <FiUsers />, to: '/friends', color: 'var(--primary-400)', items: stats.friends.slice(0, 3) },
   ];
 
   return (

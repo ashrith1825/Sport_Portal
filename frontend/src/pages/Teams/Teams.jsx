@@ -94,6 +94,10 @@ export default function Teams() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please log in to create a team');
+      return;
+    }
     if (!selectedClub) {
       toast.error('Please select a club first');
       return;
@@ -110,6 +114,10 @@ export default function Teams() {
   };
 
   const handleDelete = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete a team');
+      return;
+    }
     if (!confirm('Delete this team?')) return;
     try {
       await deleteTeam(id);
@@ -121,6 +129,10 @@ export default function Teams() {
   };
 
   const handleAddMember = async (teamId, userId) => {
+    if (!user) {
+      toast.error('Please log in to manage team members');
+      return;
+    }
     try {
       await addTeamMember(teamId, userId);
       toast.success('Member added!');
@@ -131,6 +143,10 @@ export default function Teams() {
   };
 
   const handleRemoveMember = async (teamId, userId) => {
+    if (!user) {
+      toast.error('Please log in to manage team members');
+      return;
+    }
     try {
       await removeTeamMember(teamId, userId);
       toast.success('Member removed');

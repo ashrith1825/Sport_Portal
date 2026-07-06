@@ -398,6 +398,49 @@ http://localhost:8080/api
 | POST | `/friends/request/code/{friendCode}` | Send request by code | Yes |
 | PUT | `/friends/accept/{friendshipId}` | Accept request | Yes |
 | PUT | `/friends/reject/{friendshipId}` | Reject request | Yes |
+
+---
+
+## 🚀 Deployment
+
+Quick notes to deploy the app (frontend: Vercel, backend: Render) and run locally.
+
+- **Env examples**: See `backend/.env.example` and `frontend/.env.example` for required environment variables.
+
+- **Important backend vars**:
+        - `MONGODB_URI` (full connection string)
+        - `MONGODB_DB` (database name)
+        - `JWT_SECRET`
+        - `ALLOWED_ORIGINS` (comma-separated frontend origins)
+        - `PORT` (optional; Render sets this automatically)
+
+- **Frontend (Vercel)**:
+        - Set `VITE_API_BASE_URL` to your backend URL (e.g. `https://your-backend.onrender.com/api`)
+        - Build command: `npm run build`
+        - Output directory: `dist`
+
+- **Backend (Render.com)**:
+        - Environment: Node 20
+        - Build & start: use the provided `package.json` scripts (start uses `node src/server.js`)
+        - Set environment variables listed above in the service settings
+
+- **Local development**
+        - Backend:
+                ```powershell
+                cd backend
+                npm install
+                # create .env from backend/.env.example and set values
+                npm run dev
+                ```
+        - Frontend:
+                ```bash
+                cd frontend
+                npm install
+                # create .env from frontend/.env.example (optional)
+                npm run dev
+                ```
+
+If you'd like, I can add step-by-step Render and Vercel screenshots or create CI config files next.
 | GET | `/friends` | Get my friends | Yes |
 | GET | `/friends/pending` | Get pending requests | Yes |
 | DELETE | `/friends/{friendshipId}` | Remove friend | Yes |

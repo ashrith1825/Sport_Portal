@@ -1,8 +1,41 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import API from '../../api/axios';
 import { featuredClubs, featuredEvents, featuredJournals } from './seed';
 import './Home.css';
 
 export default function Home() {
+  const [counts, setCounts] = useState({ clubs: 3, events: 2, journals: 3, demo: 1 });
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchCounts() {
+      try {
+        const [clubsRes, eventsRes, journalsRes] = await Promise.all([
+          API.get('/clubs'),
+          API.get('/events/upcoming'),
+          API.get('/journals'),
+        ]);
+
+        if (!mounted) return;
+
+        setCounts({
+          clubs: Array.isArray(clubsRes.data) ? clubsRes.data.length : counts.clubs,
+          events: Array.isArray(eventsRes.data) ? eventsRes.data.length : counts.events,
+          journals: Array.isArray(journalsRes.data) ? journalsRes.data.length : counts.journals,
+          demo: counts.demo,
+        });
+      } catch (e) {
+        // keep defaults on error
+      }
+    }
+
+    fetchCounts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="home-page">
       <div className="home-strip">
@@ -62,19 +95,19 @@ export default function Home() {
             </div>
             <div className="home-panel-grid">
               <article>
-                <strong>3</strong>
+                <strong>{counts.clubs}</strong>
                 <span>Featured clubs</span>
               </article>
               <article>
-                <strong>2</strong>
+                <strong>{counts.events}</strong>
                 <span>Upcoming events</span>
               </article>
               <article>
-                <strong>3</strong>
+                <strong>{counts.journals}</strong>
                 <span>Public journals</span>
               </article>
               <article>
-                <strong>1</strong>
+                <strong>{counts.demo}</strong>
                 <span>Demo login</span>
               </article>
             </div>

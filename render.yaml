@@ -1,0 +1,21 @@
+# Render service configuration (optional). When present, Render can import this
+# repo and create the listed services. You still need to configure secrets via the
+# Render dashboard (or use API). Keep values empty here to avoid leaking secrets.
+
+services:
+  - type: web
+    name: sport-portal-backend
+    env: node
+    branch: main
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    envVars:
+      - key: MONGODB_URI
+        value: ""
+      - key: MONGODB_DB
+        value: ""
+      - key: JWT_SECRET
+        value: ""
+      - key: ALLOWED_ORIGINS
+        value: ""

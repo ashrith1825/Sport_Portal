@@ -441,6 +441,36 @@ Quick notes to deploy the app (frontend: Vercel, backend: Render) and run locall
                 ```
 
 If you'd like, I can add step-by-step Render and Vercel screenshots or create CI config files next.
+
+---
+
+## 🧭 Deploy Guide (detailed)
+
+Backend (Render.com)
+
+1. Create a new Web Service on Render and connect your GitHub repo.
+2. Select the `main` branch and import. If using `render.yaml`, Render can auto-create the service using that manifest.
+3. Set these environment variables in Render (do NOT commit secrets):
+        - `MONGODB_URI` — Atlas connection string
+        - `MONGODB_DB` — database name
+        - `JWT_SECRET` — random secret for JWT signing
+        - `ALLOWED_ORIGINS` — e.g. `https://your-frontend.vercel.app`
+4. Build Command: leave blank (Render runs install automatically) or `npm install`.
+5. Start Command: `npm start` (server entry is `src/server.js`).
+6. After deploy, note the service URL and set `VITE_API_BASE_URL` in your frontend project to `https://<your-backend>/api`.
+
+Frontend (Vercel)
+
+1. In Vercel, create a new project and import this repository. Select the `frontend` folder as the project root.
+2. Build Command: `npm run build`
+3. Output Directory: `dist`
+4. Set Environment Variable: `VITE_API_BASE_URL` to your backend API URL (e.g. `https://your-backend.onrender.com/api`).
+5. Deploy — Vercel will build and publish the frontend.
+
+Notes
+- The repo includes `render.yaml` (optional) and `frontend/vercel.json` to simplify platform-specific setup.
+- Make sure `ALLOWED_ORIGINS` includes your Vercel domain to allow CORS.
+- For automated production deployments, consider adding GitHub Actions or Render auto-deploy settings.
 | GET | `/friends` | Get my friends | Yes |
 | GET | `/friends/pending` | Get pending requests | Yes |
 | DELETE | `/friends/{friendshipId}` | Remove friend | Yes |

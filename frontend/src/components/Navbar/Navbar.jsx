@@ -6,6 +6,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import { useState } from 'react';
 import './Navbar.css';
+import logoSrc from '../../assets/logo.png';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -42,6 +43,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-brand">
         <Link to={user ? '/dashboard' : '/'} className="navbar-logo">
+          <img src={logoSrc} alt="SportPortal" className="navbar-logo-img" />
           <span className="logo-text">Sport Portal</span>
         </Link>
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">

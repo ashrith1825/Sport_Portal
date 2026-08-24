@@ -34,6 +34,13 @@
   letter-spacing: -0.02em;
 }
 
+.navbar-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
 .logo-text {
   color: var(--text-primary);
   font-size: 1.05rem;

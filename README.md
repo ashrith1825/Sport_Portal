@@ -86,5 +86,3 @@ If you want me to start now, tell me which task to begin with (I recommend: home
 
 Author
 - Ashrith Reddy
-
-Made with ❤️ for sports communities.

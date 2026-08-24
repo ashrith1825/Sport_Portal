@@ -27,6 +27,10 @@
   border-radius:8px;
   transition: all var(--transition-fast);
 }
+.chat-drawer .chat-input button,
+.chat-drawer .chat-input button span {
+  color: #fff !important;
+}
 .chat-input button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);

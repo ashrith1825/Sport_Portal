@@ -31,6 +31,18 @@
 .chat-drawer .chat-input button span {
   color: #fff !important;
 }
+
+/* Dark theme: ensure chat send button is visible with strong contrast */
+.theme-dark .chat-drawer .chat-input button {
+  background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
+  color: #fff !important;
+  border-left-color: rgba(255,255,255,0.06);
+}
+.theme-dark .chat-drawer .chat-input button:disabled {
+  opacity: 0.6;
+  filter: none;
+  color: #fff !important;
+}
 .chat-input button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);

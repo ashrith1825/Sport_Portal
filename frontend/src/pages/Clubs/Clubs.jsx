@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { getClubs, searchClubs, createClub, joinClub, leaveClub, deleteClub } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers } from 'react-icons/fi';
+import { FiMessageSquare } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
 import '../Events/Events.css';
+import ClubChat from '../../components/ClubChat/ClubChat';
 
 export default function Clubs() {
   const { user } = useAuth();
@@ -12,85 +14,82 @@ export default function Clubs() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [chatClubId, setChatClubId] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', sportType: '', logoUrl: '' });
 
-  const fetchClubs = async () => {
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getClubs();
+        setClubs(res.data || []);
+      } catch (err) {
+        toast.error('Failed to load clubs');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const handleSearch = async (e) => {
+    e?.preventDefault();
+    setLoading(true);
     try {
       const res = search ? await searchClubs(search) : await getClubs();
-      setClubs(res.data);
+      setClubs(res.data || []);
     } catch {
-      toast.error('Failed to load clubs');
+      toast.error('Search failed');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchClubs(); }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    fetchClubs();
-  };
-
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!user) {
-      toast.error('Please log in to create a club');
-      return;
-    }
+    if (!user) return toast.error('Please log in to create a club');
     try {
       await createClub(form);
-      toast.success('Club created!');
+      toast.success('Club created');
       setShowModal(false);
       setForm({ name: '', description: '', sportType: '', logoUrl: '' });
-      setLoading(true);
-      fetchClubs();
+      const res = await getClubs();
+      setClubs(res.data || []);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create club');
+      toast.error(err?.response?.data?.message || 'Failed to create club');
     }
   };
 
   const handleJoin = async (id) => {
-    if (!user) {
-      toast.error('Please log in to join a club');
-      return;
-    }
+    if (!user) return toast.error('Please log in');
     try {
       await joinClub(id);
-      toast.success('Joined club!');
-      fetchClubs();
+      const res = await getClubs();
+      setClubs(res.data || []);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to join');
+      toast.error('Failed to join');
     }
   };
 
   const handleLeave = async (id) => {
-    if (!user) {
-      toast.error('Please log in to leave a club');
-      return;
-    }
+    if (!user) return toast.error('Please log in');
     try {
       await leaveClub(id);
-      toast.success('Left club');
-      fetchClubs();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to leave');
+      const res = await getClubs();
+      setClubs(res.data || []);
+    } catch {
+      toast.error('Failed to leave');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!user) {
-      toast.error('Please log in to delete a club');
-      return;
-    }
+    if (!user) return toast.error('Please log in');
     if (!confirm('Delete this club?')) return;
     try {
       await deleteClub(id);
+      const res = await getClubs();
+      setClubs(res.data || []);
       toast.success('Club deleted');
-      fetchClubs();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete');
+    } catch {
+      toast.error('Failed to delete');
     }
   };
 
@@ -117,33 +116,44 @@ export default function Clubs() {
       </form>
 
       <div className="card-grid">
-        {clubs.map((club) => (
-          <div key={club.id} className="card">
-            <div className="card-top">
-              <span className="sport-badge">{club.sportType}</span>
-              <span className="member-count-badge"><FiUsers /> {club.memberCount} members</span>
-            </div>
-            <h3 className="card-title">{club.name}</h3>
-            <p className="card-desc">{club.description}</p>
-            <div className="card-meta">
-              <span><FiLayers /> {club.teamCount} teams</span>
-            </div>
-            <div className="card-footer">
-              <span className="card-author">by {club.ownerUsername}</span>
-              <div className="card-actions">
-                {user && club.ownerId !== user.id && (
-                  club.memberIds?.includes(user.id)
-                    ? <button className="btn-sm btn-leave" onClick={() => handleLeave(club.id)}>Leave</button>
-                    : <button className="btn-sm btn-join" onClick={() => handleJoin(club.id)}>Join</button>
-                )}
-                {user && club.ownerId === user.id && (
-                  <button className="btn-sm btn-danger" onClick={() => handleDelete(club.id)}><FiTrash2 /></button>
-                )}
+        {clubs.length === 0 && <div className="empty-state">No clubs found. Create one!</div>}
+        {clubs.map((club) => {
+          const cid = club.id || club._id;
+          const memberIds = Array.isArray(club.memberIds) ? club.memberIds : [];
+          const memberIncludes = user ? memberIds.includes(user.id) : false;
+
+          return (
+            <div key={cid} className="card">
+              <div className="card-top">
+                <span className="sport-badge">{club.sportType}</span>
+                <span className="member-count-badge"><FiUsers /> {club.memberCount} members</span>
+              </div>
+              <h3 className="card-title">{club.name}</h3>
+              <p className="card-desc">{club.description}</p>
+              <div className="card-meta">
+                <span><FiLayers /> {club.teamCount} teams</span>
+              </div>
+              <div className="card-footer">
+                <span className="card-author">by {club.ownerUsername}</span>
+                <div className="card-actions">
+                  {user && club.ownerId !== user.id && (
+                    memberIncludes
+                      ? <button className="btn-sm btn-leave" onClick={() => handleLeave(cid)}>Leave</button>
+                      : <button className="btn-sm btn-join" onClick={() => handleJoin(cid)}>Join</button>
+                  )}
+
+                  {user && club.ownerId === user.id && (
+                    <button className="btn-sm btn-danger" onClick={() => handleDelete(cid)}><FiTrash2 /></button>
+                  )}
+
+                  {user && memberIncludes && (
+                    <button className="btn-sm btn-chat" onClick={() => setChatClubId(cid)}><FiMessageSquare /> Chat</button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        {clubs.length === 0 && <div className="empty-state">No clubs found. Create one!</div>}
+          );
+        })}
       </div>
 
       {showModal && (
@@ -174,6 +184,10 @@ export default function Clubs() {
             </form>
           </div>
         </div>
+      )}
+
+      {chatClubId && (
+        <ClubChat clubId={chatClubId} open onClose={() => setChatClubId(null)} />
       )}
     </div>
   );

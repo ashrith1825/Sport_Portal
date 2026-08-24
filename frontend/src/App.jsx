@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home/Home';
@@ -11,12 +12,14 @@ import Events from './pages/Events/Events';
 import Clubs from './pages/Clubs/Clubs';
 import Teams from './pages/Teams/Teams';
 import Journals from './pages/Journals/Journals';
+import JournalDetail from './pages/Journals/JournalDetail';
 import Friends from './pages/Friends/Friends';
 import Profile from './pages/Profile/Profile';
 
 export default function App() {
   return (
     <AuthProvider>
+      <ThemeProvider>
       <BrowserRouter>
         <Toaster
           position="top-right"
@@ -37,6 +40,7 @@ export default function App() {
             <Route path="clubs" element={<Clubs />} />
             <Route path="teams" element={<Teams />} />
             <Route path="journals" element={<Journals />} />
+            <Route path="journals/:id" element={<JournalDetail />} />
           </Route>
           <Route
             element={
@@ -52,6 +56,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

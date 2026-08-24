@@ -1,13 +1,15 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import {
-  FiHome, FiCalendar, FiUsers, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn,
+  FiHome, FiCalendar, FiUsers, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn, FiMoon, FiSun,
 } from 'react-icons/fi';
+import { useTheme } from '../../context/ThemeContext';
 import { useState } from 'react';
 import './Navbar.css';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,8 +24,8 @@ export default function Navbar() {
   const basePublicLinks = [
     { to: '/events', icon: <FiCalendar />, label: 'Events' },
     { to: '/clubs', icon: <FiShield />, label: 'Clubs' },
-    { to: '/teams', icon: <FiUsers />, label: 'Teams' },
     { to: '/journals', icon: <FiBookOpen />, label: 'Journals' },
+    { to: '/teams', icon: <FiUsers />, label: 'Teams' },
   ];
 
   // Show `Home` only for guests. When logged in, provide Dashboard via privateLinks.
@@ -62,6 +64,9 @@ export default function Navbar() {
       </div>
 
       <div className={`navbar-user ${menuOpen ? 'open' : ''}`}>
+        <button className="theme-toggle" onClick={() => { try { toggle(); } catch(e){} }} aria-label="Toggle theme">
+          {theme === 'dark' ? <FiSun /> : <FiMoon />}
+        </button>
         {user && (
           <>
             <Link to="/profile" className="nav-link user-link" onClick={() => setMenuOpen(false)}>

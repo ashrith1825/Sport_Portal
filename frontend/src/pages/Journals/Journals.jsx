@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getJournals, searchJournals, createJournal, deleteJournal } from '../../api/services';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiTrash2, FiX, FiEdit3, FiClock } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -14,55 +15,57 @@ export default function Journals() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', content: '', sportType: '', imageUrl: '' });
 
-  const fetchJournals = async () => {
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getJournals();
+        setJournals(res.data || []);
+      } catch {
+        toast.error('Failed to load journals');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const handleSearch = async (e) => {
+    e?.preventDefault();
+    setLoading(true);
     try {
       const res = search ? await searchJournals(search) : await getJournals();
-      setJournals(res.data);
+      setJournals(res.data || []);
     } catch {
-      toast.error('Failed to load journals');
+      toast.error('Search failed');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchJournals(); }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    fetchJournals();
-  };
-
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!user) {
-      toast.error('Please log in to write a journal');
-      return;
-    }
+    if (!user) return toast.error('Please log in to write a journal');
     try {
       await createJournal(form);
-      toast.success('Journal published!');
       setShowModal(false);
       setForm({ title: '', content: '', sportType: '', imageUrl: '' });
-      setLoading(true);
-      fetchJournals();
+      const res = await getJournals();
+      setJournals(res.data || []);
+      toast.success('Journal published');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create journal');
+      toast.error(err?.response?.data?.message || 'Failed to create journal');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!user) {
-      toast.error('Please log in to delete a journal');
-      return;
-    }
+    if (!user) return toast.error('Please log in');
     if (!confirm('Delete this journal?')) return;
     try {
       await deleteJournal(id);
+      const res = await getJournals();
+      setJournals(res.data || []);
       toast.success('Journal deleted');
-      fetchJournals();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete');
+    } catch {
+      toast.error('Failed to delete');
     }
   };
 
@@ -94,26 +97,30 @@ export default function Journals() {
       </form>
 
       <div className="card-grid">
-        {journals.map((journal) => (
-          <div key={journal.id} className="card">
-            <div className="card-top">
-              {journal.sportType && <span className="sport-badge">{journal.sportType}</span>}
-              <span className="status-badge status-upcoming"><FiClock /> {formatDate(journal.createdAt)}</span>
-            </div>
-            <h3 className="card-title">{journal.title}</h3>
-            <p className="card-desc">{journal.content}</p>
-            {journal.imageUrl && <img src={journal.imageUrl} alt="" className="card-image" />}
-            <div className="card-footer">
-              <span className="card-author"><FiEdit3 /> {journal.authorUsername}</span>
-              <div className="card-actions">
-                {user && journal.authorId === user.id && (
-                  <button className="btn-sm btn-danger" onClick={() => handleDelete(journal.id)}><FiTrash2 /></button>
-                )}
+        {journals.length === 0 && <div className="empty-state">No journals found. Write one!</div>}
+
+        {journals.map((journal) => {
+          const jid = journal.id || journal._id;
+          return (
+            <div key={jid} className="card">
+              <div className="card-top">
+                {journal.sportType && <span className="sport-badge">{journal.sportType}</span>}
+                <span className="status-badge status-upcoming"><FiClock /> {formatDate(journal.createdAt)}</span>
+              </div>
+              <h3 className="card-title"><Link to={`/journals/${jid}`}>{journal.title}</Link></h3>
+              <p className="card-desc">{journal.content?.substring(0, 220) || ''}{(journal.content || '').length > 220 ? '…' : ''}</p>
+              {journal.imageUrl && <img src={journal.imageUrl} alt="" className="card-image" />}
+              <div className="card-footer">
+                <span className="card-author"><FiEdit3 /> {journal.authorUsername}</span>
+                <div className="card-actions">
+                  {user && journal.authorId === user.id && (
+                    <button className="btn-sm btn-danger" onClick={() => handleDelete(journal.id)}><FiTrash2 /></button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        {journals.length === 0 && <div className="empty-state">No journals found. Write one!</div>}
+          );
+        })}
       </div>
 
       {showModal && (

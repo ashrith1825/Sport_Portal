@@ -3,6 +3,10 @@ import { fileURLToPath } from 'node:url';
 
 dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) });
 
+import dns from 'dns';
+// Force Node to use reliable public DNS servers to resolve MongoDB SRV records
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import app from './app.js';
 import { connectDatabase } from './config/db.js';
 import { seedDemoData } from './config/seed.js';

@@ -76,7 +76,7 @@ export default function Register() {
                 type="text"
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                placeholder="John"
+                placeholder="First name"
               />
             </div>
             <div className="form-group">
@@ -85,7 +85,7 @@ export default function Register() {
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                placeholder="Doe"
+                placeholder="Last name"
               />
             </div>
           </div>

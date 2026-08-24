@@ -6,6 +6,7 @@ import eventRoutes from './events.js';
 import teamRoutes from './teams.js';
 import friendshipRoutes from './friends.js';
 import journalRoutes from './journals.js';
+import messagesRoutes from './messages.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/events', eventRoutes);
 router.use('/teams', teamRoutes);
 router.use('/friends', friendshipRoutes);
 router.use('/journals', journalRoutes);
+router.use('/messages', messagesRoutes);
 
 export default router;

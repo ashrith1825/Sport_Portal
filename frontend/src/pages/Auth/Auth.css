@@ -111,7 +111,7 @@
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--bg-elevated);
   border-radius: var(--radius-xl);
   padding: var(--space-10);
   width: 100%;
@@ -196,6 +196,7 @@
   font-size: 1rem;
   transition: all var(--transition-fast);
   outline: none;
+  width: 100%;
 }
 
 .form-group input:hover,

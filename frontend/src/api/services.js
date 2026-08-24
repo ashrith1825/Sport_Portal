@@ -61,3 +61,10 @@ export const getMyJournals = () => API.get('/journals/my');
 export const createJournal = (data) => API.post('/journals', data);
 export const updateJournal = (id, data) => API.put(`/journals/${id}`, data);
 export const deleteJournal = (id) => API.delete(`/journals/${id}`);
+
+// Messages
+export const getClubMessages = (clubId, limit = 100) => API.get(`/messages/clubs/${clubId}?limit=${limit}`);
+export const postClubMessage = (clubId, text) => API.post(`/messages/clubs/${clubId}`, { text });
+export const deleteClubMessage = (messageId) => API.delete(`/messages/clubs/${messageId}`);
+export const getDirectMessages = (friendId, limit = 100) => API.get(`/messages/direct/${friendId}?limit=${limit}`);
+export const postDirectMessage = (friendId, text) => API.post(`/messages/direct/${friendId}`, { text });

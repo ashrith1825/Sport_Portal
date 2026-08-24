@@ -126,6 +126,14 @@ body {
   color: var(--text-primary);
 }
 
+/* Ensure the sticky navbar doesn't create a gap above pages.
+   Apply controlled top padding to page containers instead of the body. */
+.page,
+.home-page,
+.auth-page {
+  padding-top: var(--space-4);
+}
+
 #root {
   min-height: 100vh;
 }
@@ -240,6 +248,40 @@ input, textarea, select {
   -webkit-text-fill-color: transparent;
 }
 
+/* Global buttons and UI tokens */
+.btn-primary {
+  background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-sm {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.btn-danger {
+  background: rgba(239,68,68,0.08);
+  color: var(--error-500);
+  border: 1px solid rgba(239,68,68,0.12);
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-header { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); margin-bottom:var(--space-6);} 
+
+
 .glass {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
@@ -289,3 +331,29 @@ input, textarea, select {
     opacity: 1;
   }
 }
+
+/* Dark theme overrides */
+.theme-dark {
+  --bg-primary: #0f1115;
+  --bg-secondary: #0b0c0f;
+  --bg-tertiary: #0b0c0f;
+  --bg-elevated: #121316;
+  --bg-hover: rgba(255,255,255,0.03);
+  --border-subtle: rgba(255,255,255,0.03);
+  --border-default: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.08);
+  --text-primary: #e6e7e9;
+  --text-secondary: #c7c9cc;
+  --text-tertiary: #9da0a4;
+  --text-muted: #8a8d90;
+  --accent-500: #d1ff00;
+  --shadow-sm: 0 6px 18px rgba(0,0,0,0.6);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.7);
+}
+
+/* Make inputs and elevated panels use dark surfaces */
+.theme-dark body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+

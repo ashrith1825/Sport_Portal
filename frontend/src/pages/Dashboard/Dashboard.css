@@ -116,9 +116,9 @@
   color: var(--text-primary);
   font-size: 0.875rem;
   padding: var(--space-2) var(--space-3);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-hover);
   border-radius: var(--radius-sm);
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--accent-500);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -126,7 +126,7 @@
 }
 
 .stat-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-elevated);
 }
 
 .stat-empty {

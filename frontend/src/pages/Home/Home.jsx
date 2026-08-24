@@ -5,11 +5,15 @@ import { featuredClubs, featuredEvents, featuredJournals } from './seed';
 import './Home.css';
 
 export default function Home() {
-  const [counts, setCounts] = useState({ clubs: 3, events: 2, journals: 3, demo: 1 });
+  const [counts, setCounts] = useState({ clubs: 0, events: 0, journals: 0, demo: 1 });
+  const [clubs, setClubs] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [journals, setJournals] = useState([]);
 
   useEffect(() => {
     let mounted = true;
-    async function fetchCounts() {
+
+    async function loadAll() {
       try {
         const [clubsRes, eventsRes, journalsRes] = await Promise.all([
           API.get('/clubs'),
@@ -19,18 +23,32 @@ export default function Home() {
 
         if (!mounted) return;
 
+        const clubsData = Array.isArray(clubsRes.data) && clubsRes.data.length ? clubsRes.data : featuredClubs;
+        const eventsData = Array.isArray(eventsRes.data) && eventsRes.data.length ? eventsRes.data : featuredEvents;
+        const journalsData = Array.isArray(journalsRes.data) && journalsRes.data.length ? journalsRes.data : featuredJournals;
+
+        setClubs(clubsData);
+        setEvents(eventsData);
+        setJournals(journalsData);
+
         setCounts({
-          clubs: Array.isArray(clubsRes.data) ? clubsRes.data.length : counts.clubs,
-          events: Array.isArray(eventsRes.data) ? eventsRes.data.length : counts.events,
-          journals: Array.isArray(journalsRes.data) ? journalsRes.data.length : counts.journals,
-          demo: counts.demo,
+          clubs: clubsData.length,
+          events: eventsData.length,
+          journals: journalsData.length,
+          demo: 1,
         });
-      } catch (e) {
-        // keep defaults on error
+      } catch (err) {
+        // fallback to seeded demo data on error
+        if (!mounted) return;
+        setClubs(featuredClubs);
+        setEvents(featuredEvents);
+        setJournals(featuredJournals);
+        setCounts({ clubs: featuredClubs.length, events: featuredEvents.length, journals: featuredJournals.length, demo: 1 });
       }
     }
 
-    fetchCounts();
+    loadAll();
+
     return () => {
       mounted = false;
     };
@@ -71,61 +89,33 @@ export default function Home() {
           </p>
 
           <div className="home-actions">
-            <Link className="home-btn home-btn-primary" to="/clubs">
-              Explore Clubs
-            </Link>
-            <Link className="home-btn home-btn-secondary" to="/events">
-              Explore Events
-            </Link>
-            <Link className="home-btn home-btn-secondary" to="/journals">
-              Explore Journals
-            </Link>
+            <Link className="home-btn home-btn-primary" to="/clubs">Explore Clubs</Link>
+            <Link className="home-btn home-btn-secondary" to="/events">Explore Events</Link>
+            <Link className="home-btn home-btn-secondary" to="/journals">Explore Journals</Link>
           </div>
 
-          <div className="home-inline-links">
-            <span>No account prompt up front. Browse first, sign in later.</span>
-          </div>
+          <div className="home-inline-links"><span>No account prompt up front. Browse first, sign in later.</span></div>
         </div>
 
         <div className="home-visual">
           <div className="home-panel">
             <div className="home-panel-head">
               <p className="home-panel-label">Community at a glance</p>
-              <span>Seeded demo content is ready to explore</span>
+              <span>Live data from the API</span>
             </div>
             <div className="home-panel-grid">
-              <article>
-                <strong>{counts.clubs}</strong>
-                <span>Featured clubs</span>
-              </article>
-              <article>
-                <strong>{counts.events}</strong>
-                <span>Upcoming events</span>
-              </article>
-              <article>
-                <strong>{counts.journals}</strong>
-                <span>Public journals</span>
-              </article>
-              <article>
-                <strong>{counts.demo}</strong>
-                <span>Demo login</span>
-              </article>
+              <article><strong>{counts.clubs}</strong><span>Featured clubs</span></article>
+              <article><strong>{counts.events}</strong><span>Upcoming events</span></article>
+              <article><strong>{counts.journals}</strong><span>Public journals</span></article>
+              <article><strong>{counts.demo}</strong><span>Demo login</span></article>
             </div>
           </div>
         </div>
       </section>
 
       <section className="home-highlights">
-        {[
-          { title: 'Clubs', text: 'See seeded clubs, their sport type, and who owns each one.' },
-          { title: 'Events', text: 'Check upcoming public sessions and their location details.' },
-          { title: 'Teams', text: 'Understand how club squads are organized at a glance.' },
-          { title: 'Journals', text: 'Read public training notes and match reflections.' },
-        ].map((item) => (
-          <article className="home-card" key={item.title}>
-            <h2>{item.title}</h2>
-            <p>{item.text}</p>
-          </article>
+        {[{ title: 'Clubs', text: 'See clubs and their sport types.' }, { title: 'Events', text: 'Upcoming public sessions and locations.' }, { title: 'Teams', text: 'Club squads and captains.' }, { title: 'Journals', text: 'Stories and training notes.' }].map((item) => (
+          <article className="home-card" key={item.title}><h2>{item.title}</h2><p>{item.text}</p></article>
         ))}
       </section>
 
@@ -133,12 +123,12 @@ export default function Home() {
         <div className="home-showcase-block">
           <h2>Featured Clubs</h2>
           <div className="home-showcase-grid">
-            {featuredClubs.map((club) => (
-              <article className="home-showcase-card" key={club.name}>
-                <span className="home-chip">{club.sportType}</span>
+            {(clubs || featuredClubs).slice(0, 6).map((club) => (
+              <article className="home-showcase-card" key={club._id || club.name}>
+                <span className="home-chip">{club.sportType || club.sport}</span>
                 <h3>{club.name}</h3>
                 <p>{club.description}</p>
-                <small>{club.memberCount}</small>
+                <small>{club.members?.length ?? club.memberCount ?? ''}</small>
               </article>
             ))}
           </div>
@@ -147,12 +137,12 @@ export default function Home() {
         <div className="home-showcase-block" id="featured-journals">
           <h2>Featured Journals</h2>
           <div className="home-showcase-grid">
-            {featuredJournals.map((journal) => (
-              <article className="home-showcase-card" key={journal.title}>
+            {(journals || featuredJournals).slice(0, 6).map((journal) => (
+              <article className="home-showcase-card" key={journal._id || journal.title}>
                 <span className="home-chip">{journal.sportType}</span>
                 <h3>{journal.title}</h3>
-                <p>{journal.content}</p>
-                <small>By @{journal.author}</small>
+                <p>{journal.content?.slice(0, 120) ?? journal.excerpt}</p>
+                <small>By @{journal.author || journal.authorName}</small>
               </article>
             ))}
           </div>
@@ -161,12 +151,12 @@ export default function Home() {
         <div className="home-showcase-block" id="featured-events">
           <h2>Featured Events</h2>
           <div className="home-showcase-grid home-showcase-grid-2">
-            {featuredEvents.map((event) => (
-              <article className="home-showcase-card" key={event.title}>
+            {(events || featuredEvents).slice(0, 6).map((event) => (
+              <article className="home-showcase-card" key={event._id || event.title}>
                 <span className="home-chip">{event.sportType}</span>
                 <h3>{event.title}</h3>
-                <p>{event.location}</p>
-                <small>{event.when}</small>
+                <p>{event.location || event.venue}</p>
+                <small>{event.eventDate || event.when}</small>
               </article>
             ))}
           </div>

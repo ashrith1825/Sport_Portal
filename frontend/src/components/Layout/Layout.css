@@ -4,9 +4,7 @@
 
 .layout {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(200, 0, 0, 0.04), transparent 24%),
-    var(--bg-primary);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }

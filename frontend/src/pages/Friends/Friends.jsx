@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { getFriends, getPendingRequests, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend, getAllUsers, sendFriendRequestByCode } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiUserPlus, FiCheck, FiXCircle, FiTrash2, FiSearch, FiClock, FiCopy, FiHash, FiUsers } from 'react-icons/fi';
+import { FiMessageSquare } from 'react-icons/fi';
+import FriendChat from '../../components/FriendChat/FriendChat';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
 import './Friends.css';
@@ -16,6 +18,8 @@ export default function Friends() {
   const [search, setSearch] = useState('');
   const [friendCode, setFriendCode] = useState('');
   const [addingByCode, setAddingByCode] = useState(false);
+  const [chatFriendId, setChatFriendId] = useState(null);
+  const [chatFriendName, setChatFriendName] = useState('');
 
   const fetchData = async () => {
     try {
@@ -186,9 +190,19 @@ export default function Friends() {
                   <FiCheck /> Friends
                 </span>
               </div>
-              <button className="btn-sm btn-danger" onClick={() => handleRemove(f.id)} title="Remove friend">
-                <FiTrash2 />
-              </button>
+              <div className="card-actions">
+                <button className="btn-sm btn-chat" onClick={() => {
+                  const otherId = f.friendId === user.id ? f.userId : f.friendId;
+                  const otherName = f.friendId === user.id ? f.username : f.friendUsername;
+                  setChatFriendId(otherId);
+                  setChatFriendName(otherName || 'Chat');
+                }} title="Message">
+                  <FiMessageSquare />
+                </button>
+                <button className="btn-sm btn-danger" onClick={() => handleRemove(f.id)} title="Remove friend">
+                  <FiTrash2 />
+                </button>
+              </div>
             </div>
           ))}
           {friends.length === 0 && (
@@ -260,6 +274,9 @@ export default function Friends() {
             )}
           </div>
         </>
+      )}
+      {chatFriendId && (
+        <FriendChat friendId={chatFriendId} friendName={chatFriendName} open onClose={() => { setChatFriendId(null); setChatFriendName(''); }} />
       )}
     </div>
   );

@@ -83,80 +83,46 @@
 @media (max-width: 600px) { .home-strip, .home-topbar { align-items: flex-start; flex-direction: column; } .home-top-actions { width: 100%; } .home-top-link { flex: 1; text-align: center; } .home-hero h1 { font-size: clamp(2.7rem, 14vw, 4.5rem); } .home-highlights { grid-template-columns: 1fr; } .home-actions { align-items: stretch; flex-direction: column; } .home-btn { width: 100%; } .home-panel-head { flex-direction: column; } .home-panel-head span { text-align: left; } }
 
 .theme-dark .home-page {
-  color: #fffaff;
-  background: #151020;
+  position: relative;
+  color: #f5f5f5;
+  background: #0a0a0a;
 }
 
+.theme-dark .home-page::before,
+.theme-dark .home-page::after {
+  content: '';
+  position: absolute;
+  width: 34vw;
+  height: 34vw;
+  max-width: 520px;
+  max-height: 520px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.theme-dark .home-page::before { top: 12rem; right: -12rem; background: rgba(112, 0, 255, 0.18); }
+.theme-dark .home-page::after { bottom: 8rem; left: -14rem; background: rgba(255, 0, 153, 0.15); }
+.theme-dark .home-strip { position: relative; z-index: 1; color: #f5f5f5; background: #151515; border-color: #f5f5f5; transform: rotate(-1deg); }
+.theme-dark .home-strip-links a { color: #ccff00; }
 .theme-dark .home-brand strong,
 .theme-dark .home-brand small,
 .theme-dark .home-hero h1,
 .theme-dark .home-hero p,
-.theme-dark .home-inline-links,
-.theme-dark .home-panel,
-.theme-dark .home-panel-label,
-.theme-dark .home-panel-head span,
-.theme-dark .home-card,
-.theme-dark .home-showcase-card,
-.theme-dark .home-showcase-card h3,
-.theme-dark .home-showcase-card small {
-  color: #fffaff;
-}
-
+.theme-dark .home-inline-links { color: #f5f5f5; }
+.theme-dark .home-brand::before { background: #ccff00; color: #0a0a0a; border-color: #f5f5f5; box-shadow: 4px 4px 0 #ff0099; }
+.theme-dark .home-top-link,
+.theme-dark .home-btn { color: #f5f5f5; background: #151515; border-color: #f5f5f5; box-shadow: 5px 5px 0 #7000ff; }
+.theme-dark .home-top-link-accent,
+.theme-dark .home-btn-primary { color: #0a0a0a; background: #ccff00; border-color: #0a0a0a; box-shadow: 5px 5px 0 #f5f5f5; }
+.theme-dark .home-hero h1::first-line { background: linear-gradient(100deg, #ccff00, #ff0099); background-clip: text; -webkit-background-clip: text; }
 .theme-dark .home-panel,
 .theme-dark .home-card,
-.theme-dark .home-showcase-card {
-  background: #241b35;
-  border-color: #f7f3ff;
-  box-shadow: 6px 6px 0 #ccff00;
-}
-
-.theme-dark .home-panel-head {
-  border-bottom-color: #f7f3ff;
-}
-
-.theme-dark .home-visual::after {
-  color: #0a0a0a;
-  background: #ccff00;
-  border-color: #f7f3ff;
-  box-shadow: 5px 5px 0 #ff0099;
-}
-
-.theme-dark .home-visual::before {
-  border-color: #f7f3ff;
-  box-shadow: 5px 5px 0 #ccff00;
-}
-
-.theme-dark .home-panel-grid article {
-  color: #fffaff;
-  background: #302443;
-  border-color: #f7f3ff;
-}
-
-.theme-dark .home-panel-grid article:nth-child(2) {
-  color: #0a0a0a;
-  background: #ccff00;
-}
-
-.theme-dark .home-panel-grid article:nth-child(3) {
-  color: #0a0a0a;
-  background: #ff0099;
-}
-
-.theme-dark .home-panel-grid article:nth-child(4) {
-  color: #fffaff;
-  background: #7000ff;
-}
-
-.theme-dark .home-showcase-block h2 {
-  color: #0a0a0a;
-}
-
-.theme-dark .home-showcase-card:nth-child(3n) {
-  color: #0a0a0a;
-  background: #ff0099;
-}
-
-.theme-dark .home-showcase-card:nth-child(3n) h3,
-.theme-dark .home-showcase-card:nth-child(3n) small {
-  color: #0a0a0a;
-}
+.theme-dark .home-showcase-card { color: #f5f5f5; background: #151515; border-color: #f5f5f5; box-shadow: 6px 6px 0 #ff0099; }
+.theme-dark .home-panel { position: relative; z-index: 1; }
+.theme-dark .home-panel-head { border-bottom-color: #f5f5f5; }
+.theme-dark .home-visual::after { color: #0a0a0a; background: #ccff00; border-color: #f5f5f5; box-shadow: 5px 5px 0 #ff0099; }
+.theme-dark .home-visual::before { color: #0a0a0a; background: #ff0099; border-color: #f5f5f5; box-shadow: 5px 5px 0 #ccff00; }
+.theme-dark .home-panel-grid article { color: #f5f5f5; background: #1f1f1f; border-color: #f5f5f5; }
+.theme-dark .home-panel-grid-empty { display: flex; flex-direction: column; gap: .5rem; }
+.theme-dark .home-panel-grid-empty strong { color: #ccff00; }
+.theme-dark .home-showcase-block h2 { color: #0a0a0a; background: #ccff00; border-color: #f5f5f5; box-shadow: 4px 4px 0 #7000ff; }

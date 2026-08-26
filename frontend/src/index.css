@@ -30,6 +30,8 @@
   --accent-500: #0a0a0a;
   --accent-600: #7000ff;
   --accent-700: #ff0099;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   
   /* Success */
   --success-500: #10b981;
@@ -336,23 +338,26 @@ input, textarea, select {
 
 /* Dark theme overrides */
 .theme-dark {
-  --bg-primary: #151020;
-  --bg-secondary: #241b35;
-  --bg-tertiary: #302443;
-  --bg-elevated: #3b2b51;
-  --bg-hover: #4a315d;
-  --border-subtle: rgba(247,243,255,0.7);
-  --border-default: #f7f3ff;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #151515;
+  --bg-tertiary: #1f1f1f;
+  --bg-elevated: #252525;
+  --bg-hover: #303030;
+  --border-subtle: #f5f5f5;
+  --border-default: #f5f5f5;
   --border-strong: #ccff00;
-  --text-primary: #fffaff;
-  --text-secondary: #eee7f5;
-  --text-tertiary: #d0c3dc;
-  --text-muted: #b5a7c2;
+  --text-primary: #f5f5f5;
+  --text-secondary: rgba(245, 245, 245, 0.82);
+  --text-tertiary: rgba(245, 245, 245, 0.68);
+  --text-muted: rgba(245, 245, 245, 0.52);
   --accent-500: #ccff00;
+  --accent-600: #7000ff;
+  --accent-700: #ff0099;
   --shadow-sm: 4px 4px 0 #ccff00;
-  --shadow-md: 6px 6px 0 #ccff00;
-  --shadow-lg: 8px 8px 0 #ccff00;
-  --shadow-xl: 10px 10px 0 #ccff00;
+  --shadow-md: 6px 6px 0 #7000ff;
+  --shadow-lg: 8px 8px 0 #ff0099;
+  --shadow-xl: 10px 10px 0 #7000ff;
+  background-color: #0a0a0a;
 }
 
 .theme-dark .card,
@@ -361,6 +366,73 @@ input, textarea, select {
   background: var(--bg-secondary);
   border-color: var(--border-default);
   box-shadow: var(--shadow-md);
+}
+
+.theme-dark .card:nth-child(3n + 2),
+.theme-dark .stat-card:nth-child(3n + 2),
+.theme-dark .action-card:nth-child(3n + 2) {
+  box-shadow: 6px 6px 0 #7000ff;
+}
+
+.theme-dark .card:nth-child(3n),
+.theme-dark .stat-card:nth-child(3n),
+.theme-dark .action-card:nth-child(3n) {
+  box-shadow: 6px 6px 0 #ff0099;
+}
+
+.theme-dark .card,
+.theme-dark .modal,
+.theme-dark .auth-card,
+.theme-dark .stat-card,
+.theme-dark .action-card {
+  background: #151515;
+  border: 4px solid #f5f5f5;
+}
+
+.theme-dark .search-bar,
+.theme-dark .tabs,
+.theme-dark .modal-form .form-group input,
+.theme-dark .modal-form .form-group textarea,
+.theme-dark .modal-form .form-group select,
+.theme-dark .form-group input,
+.theme-dark .form-group textarea,
+.theme-dark .form-group select {
+  background: #151515;
+  border: 2px solid #f5f5f5;
+}
+
+.theme-dark .btn-primary {
+  color: #0a0a0a;
+  background: #ccff00;
+  border: 3px solid #0a0a0a;
+  box-shadow: 5px 5px 0 #f5f5f5;
+}
+
+.theme-dark .btn-secondary {
+  color: #f5f5f5;
+  background: #151515;
+  border: 2px solid #f5f5f5;
+}
+
+.theme-dark .tab.active { color: #0a0a0a; background: #ccff00; }
+
+.theme-dark .auth-page {
+  background: #0a0a0a;
+}
+
+.theme-dark .auth-page::before { background: rgba(112, 0, 255, 0.16); }
+.theme-dark .auth-page::after { background: rgba(255, 0, 153, 0.13); }
+.theme-dark .auth-logo { color: #0a0a0a; background: #ccff00; box-shadow: 6px 6px 0 #ff0099; }
+
+.theme-dark input,
+.theme-dark textarea,
+.theme-dark select {
+  color-scheme: dark;
+}
+
+.theme-dark ::selection {
+  background: #ccff00;
+  color: #0a0a0a;
 }
 
 .theme-dark .home-page {

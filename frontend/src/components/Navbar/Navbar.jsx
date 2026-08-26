@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import {
-  FiHome, FiCalendar, FiUsers, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn, FiMoon, FiSun,
+  FiHome, FiCalendar, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn, FiMoon, FiSun,
 } from 'react-icons/fi';
 import { useTheme } from '../../context/ThemeContext';
 import { useState } from 'react';
@@ -26,7 +26,6 @@ export default function Navbar() {
     { to: '/events', icon: <FiCalendar />, label: 'Events' },
     { to: '/clubs', icon: <FiShield />, label: 'Clubs' },
     { to: '/journals', icon: <FiBookOpen />, label: 'Journals' },
-    { to: '/teams', icon: <FiUsers />, label: 'Teams' },
   ];
 
   // Show `Home` only for guests. When logged in, provide Dashboard via privateLinks.

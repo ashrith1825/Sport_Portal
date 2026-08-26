@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed:test": "node scripts/reset_and_seed_sports.mjs",
+    "validate:test": "node scripts/validate_seed.mjs",
+    "test:authorization": "node scripts/test_team_authorization.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

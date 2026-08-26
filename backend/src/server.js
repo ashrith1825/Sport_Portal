@@ -9,13 +9,11 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 import app from './app.js';
 import { connectDatabase } from './config/db.js';
-import { seedDemoData } from './config/seed.js';
 
 const port = Number(process.env.PORT || 8080);
 
 async function start() {
   await connectDatabase();
-  await seedDemoData();
   app.listen(port, '0.0.0.0', () => {
     console.log(`Sport Portal API running on http://0.0.0.0:${port}`);
   });

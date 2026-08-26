@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiUsers, FiTrash2, FiX, FiUserPlus, FiUserMinus, FiChevronDown, FiChevronUp, FiShield } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { countLabel } from '../../utils/countLabel';
 import './Teams.css';
 
 export default function Teams() {
@@ -18,27 +19,6 @@ export default function Teams() {
   const [showModal, setShowModal] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', clubId: '' });
-
-  const fetchClubs = async () => {
-    try {
-      const res = await getClubs();
-      setClubs(res.data);
-      
-      // Auto-select club from URL or first club
-      const clubIdFromUrl = searchParams.get('clubId');
-      if (clubIdFromUrl) {
-        const club = res.data.find(c => c.id === parseInt(clubIdFromUrl));
-        if (club) {
-          setSelectedClub(club);
-          await fetchTeams(club.id);
-        }
-      }
-    } catch {
-      toast.error('Failed to load clubs');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchTeams = async (clubId) => {
     try {
@@ -195,7 +175,7 @@ export default function Teams() {
         <div className="teams-list">
           <div className="section-header">
             <h2>Teams in {selectedClub.name}</h2>
-            <span className="team-count">{teams.length} teams</span>
+            <span className="team-count">{countLabel(teams.length, 'team')}</span>
           </div>
 
           {teams.map((team) => (
@@ -205,7 +185,7 @@ export default function Teams() {
                   <h3 className="team-name">{team.name}</h3>
                   <p className="team-desc">{team.description || 'No description'}</p>
                   <div className="team-meta">
-                    <span><FiUsers /> {team.memberCount || 0} members</span>
+                    <span><FiUsers /> {countLabel(team.memberCount, 'member')}</span>
                     <span>Captain: {team.captainUsername}</span>
                   </div>
                 </div>

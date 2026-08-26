@@ -61,7 +61,6 @@ export default function FriendChat({ friendId, friendName = 'friend chat', open,
       currentUserId={user?.id}
       onSend={send}
       onDelete={remove}
-      onClose={onClose}
       isOpen={open}
     />
   );

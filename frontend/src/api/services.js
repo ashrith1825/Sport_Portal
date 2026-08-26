@@ -13,6 +13,8 @@ export const getAllUsers = () => API.get('/users');
 // Clubs
 export const getClubs = () => API.get('/clubs');
 export const getClub = (id) => API.get(`/clubs/${id}`);
+export const getClubRequests = (clubId) => API.get(`/clubs/${clubId}/requests`);
+export const decisionClubRequest = (requestId, decision) => API.post(`/clubs/requests/${requestId}/decision`, { decision });
 export const getClubsBySport = (sport) => API.get(`/clubs/sport/${sport}`);
 export const searchClubs = (keyword) => API.get(`/clubs/search?keyword=${keyword}`);
 export const getMyClubs = () => API.get('/clubs/my');
@@ -38,10 +40,16 @@ export const leaveEvent = (id) => API.post(`/events/${id}/leave`);
 // Teams
 export const getTeamsByClub = (clubId) => API.get(`/teams/club/${clubId}`);
 export const getTeam = (id) => API.get(`/teams/${id}`);
+export const getTeamRequests = (teamId) => API.get(`/teams/${teamId}/requests`);
 export const createTeam = (data) => API.post('/teams', data);
+export const requestTeamJoin = (teamId, message) => API.post('/teams/requests/join', { teamId, message });
+export const requestTeamLeave = (teamId, message) => API.post('/teams/requests/leave', { teamId, message });
+export const requestTeamDeletion = (teamId) => API.post('/teams/requests/delete', { teamId });
+export const approveTeamRequest = (requestId, decision) => API.post(`/teams/requests/${requestId}/decision`, { decision });
 export const addTeamMember = (teamId, userId) => API.post(`/teams/${teamId}/members/${userId}`);
 export const removeTeamMember = (teamId, userId) => API.delete(`/teams/${teamId}/members/${userId}`);
 export const deleteTeam = (id) => API.delete(`/teams/${id}`);
+export const transferTeamLeadership = (teamId, newCaptainId) => API.post(`/teams/${teamId}/transfer/${newCaptainId}`);
 
 // Friends
 export const sendFriendRequest = (friendId) => API.post(`/friends/request/${friendId}`);

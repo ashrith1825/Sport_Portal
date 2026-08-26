@@ -1,6 +1,7 @@
 import Club from '../models/Club.js';
 import User from '../models/User.js';
 import Team from '../models/Team.js';
+import ClubRequest from '../models/ClubRequest.js';
 import { toClubDto } from './format.js';
 
 async function enrichClub(club) {
@@ -74,6 +75,11 @@ export async function createClub(req, res, next) {
       return res.status(400).json({ message: 'Name and sportType are required' });
     }
 
+    const existingOwnerClub = await Club.findOne({ owner: req.user.id }).lean();
+    if (existingOwnerClub) {
+      return res.status(400).json({ message: 'You already own a club in this phase. One club admin slot is allowed.' });
+    }
+
     const club = await Club.create({ name, description, sportType, logoUrl, owner: req.user.id, members: [req.user.id] });
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedClubs: club._id } });
     const populated = await Club.findById(club._id).populate('owner', 'username');
@@ -138,9 +144,26 @@ export async function joinClub(req, res, next) {
       return res.status(404).json({ message: 'Club not found' });
     }
 
-    await Club.findByIdAndUpdate(req.params.id, { $addToSet: { members: req.user.id } });
-    await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedClubs: club._id } });
-    return res.json({ message: 'Joined club successfully' });
+    const alreadyMember = (club.members || []).some((memberId) => memberId.toString() === req.user.id);
+    if (alreadyMember) {
+      return res.status(409).json({ message: 'You are already a member of this club' });
+    }
+
+    const existingPending = await ClubRequest.findOne({ type: 'CLUB_JOIN', club: club._id, requestedBy: req.user.id, status: 'PENDING' }).lean();
+    if (existingPending) {
+      return res.status(409).json({ message: 'A club join request is already pending' });
+    }
+
+    const request = await ClubRequest.create({
+      type: 'CLUB_JOIN',
+      club: club._id,
+      user: req.user.id,
+      requestedBy: req.user.id,
+      message: 'Requested club membership',
+      status: 'PENDING',
+    });
+
+    return res.status(202).json({ message: 'Club join request sent', requestId: request._id });
   } catch (error) {
     return next(error);
   }
@@ -157,9 +180,92 @@ export async function leaveClub(req, res, next) {
       return res.status(400).json({ message: 'Owner cannot leave their own club' });
     }
 
-    await Club.findByIdAndUpdate(req.params.id, { $pull: { members: req.user.id } });
-    await User.findByIdAndUpdate(req.user.id, { $pull: { joinedClubs: club._id } });
-    return res.json({ message: 'Left club successfully' });
+    const existingPending = await ClubRequest.findOne({ type: 'TEAM_LEAVE', club: club._id, requestedBy: req.user.id, status: 'PENDING' }).lean();
+    if (existingPending) {
+      return res.status(409).json({ message: 'Your leave request is already pending' });
+    }
+
+    await ClubRequest.create({
+      type: 'TEAM_LEAVE',
+      club: club._id,
+      user: req.user.id,
+      requestedBy: req.user.id,
+      message: 'Requested club leave approval',
+      status: 'PENDING',
+    });
+
+    return res.status(202).json({ message: 'Leave request sent to club admin' });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getClubRequests(req, res, next) {
+  try {
+    const club = await Club.findById(req.params.id).select('owner').lean();
+    if (!club) return res.status(404).json({ message: 'Club not found' });
+    if (club.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the club admin can view these requests' });
+    }
+
+    const requests = await ClubRequest.find({ club: req.params.id, status: 'PENDING' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'username firstName lastName')
+      .populate('team', 'name')
+      .lean();
+
+    return res.json(requests);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function decisionClubRequest(req, res, next) {
+  try {
+    const { requestId } = req.params;
+    const { decision } = req.body;
+    const request = await ClubRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    const club = await Club.findById(request.club);
+    if (!club) {
+      return res.status(404).json({ message: 'Club not found' });
+    }
+
+    if (club.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the club admin can review this request' });
+    }
+
+    if (!['APPROVED', 'REJECTED'].includes(decision)) {
+      return res.status(400).json({ message: 'decision must be APPROVED or REJECTED' });
+    }
+
+    request.status = decision;
+    request.reviewedBy = req.user.id;
+    await request.save();
+
+    if (decision === 'APPROVED') {
+      if (request.type === 'CLUB_JOIN') {
+        await Club.findByIdAndUpdate(request.club, { $addToSet: { members: request.user } });
+        await User.findByIdAndUpdate(request.user, { $addToSet: { joinedClubs: request.club } });
+      }
+
+      if (request.type === 'TEAM_CREATE') {
+        const team = await Team.create({
+          name: request.name || 'New Team',
+          description: request.description || '',
+          club: request.club,
+          captain: request.user,
+          members: [request.user],
+        });
+        await Club.findByIdAndUpdate(request.club, { $addToSet: { teams: team._id } });
+        await User.findByIdAndUpdate(request.user, { $addToSet: { joinedTeams: team._id } });
+      }
+    }
+
+    return res.json({ message: `Request ${decision.toLowerCase()}` });
   } catch (error) {
     return next(error);
   }

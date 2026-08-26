@@ -275,7 +275,7 @@ export default function Friends() {
           </div>
         </>
       )}
-      <FriendChat friendId={chatFriendId} friendName={chatFriendName} open={Boolean(chatFriendId)} onClose={() => { setChatFriendId(null); setChatFriendName(''); }} />
+      <FriendChat friendId={chatFriendId} friendName={chatFriendName} open={Boolean(chatFriendId)} />
     </div>
   );
 }

@@ -85,6 +85,8 @@ export function toTeamDto(team) {
     description: doc.description || '',
     clubId: toId(doc.club?._id ?? doc.clubId ?? doc.club),
     clubName: doc.club?.name || doc.clubName || '',
+    sportType: doc.club?.sportType || doc.sportType || '',
+    clubOwnerId: toId(doc.club?.owner?._id ?? doc.club?.owner ?? doc.clubOwnerId),
     captainId: doc.captain ? toId(doc.captain._id ?? doc.captain) : null,
     captainUsername: doc.captain?.username || doc.captainUsername || '',
     memberCount: Number(doc.memberCount ?? doc.members?.length ?? 0),

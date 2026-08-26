@@ -81,7 +81,6 @@ export default function ClubChat({ clubId, open, onClose }) {
       currentUserId={user?.id}
       onSend={send}
       onDelete={remove}
-      onClose={onClose}
       isOpen={open}
     />
   );

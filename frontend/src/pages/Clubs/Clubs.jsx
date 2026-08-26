@@ -1,33 +1,42 @@
 import { useEffect, useState } from 'react';
-import { getClubs, searchClubs, createClub, joinClub, leaveClub, deleteClub } from '../../api/services';
+import { useNavigate } from 'react-router-dom';
+import {
+  getClubs,
+  searchClubs,
+  createClub,
+  joinClub,
+  leaveClub,
+  deleteClub,
+} from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
-import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers } from 'react-icons/fi';
-import { FiMessageSquare } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers, FiArrowRight } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { countLabel } from '../../utils/countLabel';
 import '../Events/Events.css';
-import ClubChat from '../../components/ClubChat/ClubChat';
 
 export default function Clubs() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [chatClubId, setChatClubId] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', sportType: '', logoUrl: '' });
 
+  const loadClubs = async () => {
+    try {
+      const res = await getClubs();
+      setClubs(res.data || []);
+    } catch (err) {
+      toast.error('Failed to load clubs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getClubs();
-        setClubs(res.data || []);
-      } catch (err) {
-        toast.error('Failed to load clubs');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    loadClubs();
   }, []);
 
   const handleSearch = async (e) => {
@@ -51,8 +60,7 @@ export default function Clubs() {
       toast.success('Club created');
       setShowModal(false);
       setForm({ name: '', description: '', sportType: '', logoUrl: '' });
-      const res = await getClubs();
-      setClubs(res.data || []);
+      await loadClubs();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to create club');
     }
@@ -62,10 +70,10 @@ export default function Clubs() {
     if (!user) return toast.error('Please log in');
     try {
       await joinClub(id);
-      const res = await getClubs();
-      setClubs(res.data || []);
+      toast.success('Club join request sent');
+      await loadClubs();
     } catch (err) {
-      toast.error('Failed to join');
+      toast.error(err?.response?.data?.message || 'Failed to join');
     }
   };
 
@@ -73,10 +81,10 @@ export default function Clubs() {
     if (!user) return toast.error('Please log in');
     try {
       await leaveClub(id);
-      const res = await getClubs();
-      setClubs(res.data || []);
-    } catch {
-      toast.error('Failed to leave');
+      toast.success('Club leave request sent');
+      await loadClubs();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to leave');
     }
   };
 
@@ -85,11 +93,10 @@ export default function Clubs() {
     if (!confirm('Delete this club?')) return;
     try {
       await deleteClub(id);
-      const res = await getClubs();
-      setClubs(res.data || []);
+      await loadClubs();
       toast.success('Club deleted');
-    } catch {
-      toast.error('Failed to delete');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to delete');
     }
   };
 
@@ -120,34 +127,45 @@ export default function Clubs() {
         {clubs.map((club) => {
           const cid = club.id || club._id;
           const memberIds = Array.isArray(club.memberIds) ? club.memberIds : [];
-          const memberIncludes = user ? memberIds.includes(user.id) : false;
+          const memberIncludes = user ? memberIds.includes(user.id) || memberIds.includes(user._id) : false;
 
           return (
-            <div key={cid} className="card">
+            <div
+              key={cid}
+              className="card"
+              onClick={() => navigate(`/clubs/${cid}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="card-top">
                 <span className="sport-badge">{club.sportType}</span>
-                <span className="member-count-badge"><FiUsers /> {club.memberCount} members</span>
+                <span className="member-count-badge"><FiUsers /> {countLabel(club.memberCount, 'member')}</span>
               </div>
               <h3 className="card-title">{club.name}</h3>
-              <p className="card-desc">{club.description}</p>
+              <p className="card-desc">{club.description || 'No description yet.'}</p>
               <div className="card-meta">
-                <span><FiLayers /> {club.teamCount} teams</span>
+                <span><FiLayers /> {countLabel(club.teamCount, 'team')}</span>
               </div>
               <div className="card-footer">
                 <span className="card-author">by {club.ownerUsername}</span>
                 <div className="card-actions">
+                  <button
+                    className="btn-sm btn-secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/clubs/${cid}`);
+                    }}
+                  >
+                    Details <FiArrowRight />
+                  </button>
+
                   {user && club.ownerId !== user.id && (
                     memberIncludes
-                      ? <button className="btn-sm btn-leave" onClick={() => handleLeave(cid)}>Leave</button>
-                      : <button className="btn-sm btn-join" onClick={() => handleJoin(cid)}>Join</button>
+                      ? <button className="btn-sm btn-leave" onClick={(e) => { e.stopPropagation(); handleLeave(cid); }}>Leave</button>
+                      : <button className="btn-sm btn-join" onClick={(e) => { e.stopPropagation(); handleJoin(cid); }}>Join</button>
                   )}
 
                   {user && club.ownerId === user.id && (
-                    <button className="btn-sm btn-danger" onClick={() => handleDelete(cid)}><FiTrash2 /></button>
-                  )}
-
-                  {user && memberIncludes && (
-                    <button className="btn-sm btn-chat" onClick={() => setChatClubId(cid)}><FiMessageSquare /> Chat</button>
+                    <button className="btn-sm btn-danger" onClick={(e) => { e.stopPropagation(); handleDelete(cid); }}><FiTrash2 /></button>
                   )}
                 </div>
               </div>
@@ -185,8 +203,6 @@ export default function Clubs() {
           </div>
         </div>
       )}
-
-      <ClubChat clubId={chatClubId} open={Boolean(chatClubId)} onClose={() => setChatClubId(null)} />
     </div>
   );
 }

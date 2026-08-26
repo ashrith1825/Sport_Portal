@@ -10,11 +10,12 @@ import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Events from './pages/Events/Events';
 import Clubs from './pages/Clubs/Clubs';
-import Teams from './pages/Teams/Teams';
+import ClubDetail from './pages/Clubs/ClubDetail';
 import Journals from './pages/Journals/Journals';
 import JournalDetail from './pages/Journals/JournalDetail';
 import Friends from './pages/Friends/Friends';
 import Profile from './pages/Profile/Profile';
+import TeamDetail from './pages/Teams/TeamDetail';
 
 export default function App() {
   return (
@@ -38,7 +39,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="events" element={<Events />} />
             <Route path="clubs" element={<Clubs />} />
-            <Route path="teams" element={<Teams />} />
+            <Route path="clubs/:clubId" element={<ClubDetail />} />
             <Route path="journals" element={<Journals />} />
             <Route path="journals/:id" element={<JournalDetail />} />
           </Route>
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="friends" element={<Friends />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="teams/:teamId" element={<TeamDetail />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

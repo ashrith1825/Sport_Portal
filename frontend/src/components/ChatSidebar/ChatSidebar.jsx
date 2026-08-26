@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FiMessageSquare, FiSend, FiUsers, FiX } from 'react-icons/fi';
+import { FiMessageSquare, FiSend, FiUsers } from 'react-icons/fi';
+import { countLabel } from '../../utils/countLabel';
 import './ChatSidebar.css';
 
 function initials(name = '?') {
@@ -22,43 +23,18 @@ export default function ChatSidebar({
   currentUserId,
   onSend,
   onDelete,
-  onClose,
   isOpen,
 }) {
   const [drafts, setDrafts] = useState({});
   const inputRef = useRef(null);
-  const panelRef = useRef(null);
   const chatKey = `${mode}:${participant?.id || 'empty'}`;
   const draft = drafts[chatKey] || '';
 
-  useEffect(() => {
-    if (isOpen) inputRef.current?.focus();
-  }, [chatKey, isOpen]);
+  const isVisible = typeof isOpen === 'boolean' ? isOpen : true;
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!isOpen) return;
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab' || !panelRef.current) return;
-      const focusable = panelRef.current.querySelectorAll('button:not(:disabled), input');
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    if (isVisible) inputRef.current?.focus();
+  }, [chatKey, isVisible]);
 
   const updateDraft = (value) => {
     setDrafts((current) => ({ ...current, [chatKey]: value }));
@@ -67,21 +43,22 @@ export default function ChatSidebar({
   const send = (event) => {
     event.preventDefault();
     const value = draft.trim();
-    if (!value || !isOpen) return;
+    if (!value || !isVisible) return;
     onSend(value);
     updateDraft('');
   };
 
   const title = participant?.name || (mode === 'club' ? 'club chat' : 'friend chat');
   const subtitle = mode === 'club'
-    ? `${participant?.memberCount || 0} members`
+    ? countLabel(participant?.memberCount, 'member')
     : (participant?.isOnline ? 'online now' : 'offline');
+
+  if (!isVisible) return null;
 
   return (
     <aside
-      ref={panelRef}
-      className={`chat-sidebar ${isOpen ? 'is-open' : ''}`}
-      aria-hidden={!isOpen}
+      className="chat-sidebar"
+      aria-hidden={false}
       aria-label={`${mode} chat`}
       data-current-user-id={currentUserId || ''}
     >
@@ -102,9 +79,6 @@ export default function ChatSidebar({
             </p>
           </div>
         </div>
-        <button className="chat-sidebar-close" type="button" onClick={onClose} aria-label="Close chat">
-          <FiX />
-        </button>
       </header>
 
       <div className="chat-sidebar-body" role="log" aria-live="polite">

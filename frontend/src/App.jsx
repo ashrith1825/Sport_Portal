@@ -32,10 +32,10 @@ export default function App() {
           }}
         />
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
             <Route path="events" element={<Events />} />
             <Route path="clubs" element={<Clubs />} />
             <Route path="teams" element={<Teams />} />

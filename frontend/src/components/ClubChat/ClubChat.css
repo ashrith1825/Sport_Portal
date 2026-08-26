@@ -58,3 +58,51 @@
 .chat-meta { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--text-tertiary); }
 .chat-text { background:var(--bg-secondary); padding:8px 10px; border-radius:6px; margin-top:6px; }
 .chat-close { background:transparent; border:none; color:inherit; font-size:18px; cursor:pointer; }
+
+.theme-dark .chat-drawer {
+  background: #151515;
+  color: #f5f5f5;
+  border: 4px solid #f5f5f5;
+  box-shadow: 6px 6px 0 #ff0099;
+}
+
+.theme-dark .chat-header,
+.theme-dark .chat-input {
+  border-color: #f5f5f5;
+}
+
+.theme-dark .chat-header h4,
+.theme-dark .chat-meta strong,
+.theme-dark .chat-text {
+  color: #f5f5f5;
+}
+
+.theme-dark .chat-meta,
+.theme-dark .chat-meta small {
+  color: rgba(245, 245, 245, 0.68);
+}
+
+.theme-dark .chat-text {
+  background: #1f1f1f;
+  border: 2px solid #7000ff;
+}
+
+.theme-dark .chat-input input {
+  color: #f5f5f5;
+}
+
+.theme-dark .chat-input input::placeholder {
+  color: rgba(245, 245, 245, 0.52);
+}
+
+.theme-dark .chat-input button {
+  color: #0a0a0a !important;
+  background: #ccff00;
+  border-left: 2px solid #f5f5f5;
+}
+
+.theme-dark .chat-input button:disabled {
+  color: #f5f5f5 !important;
+  background: #303030;
+  opacity: 1;
+}

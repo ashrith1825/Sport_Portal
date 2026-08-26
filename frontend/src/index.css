@@ -414,6 +414,19 @@ input, textarea, select {
   border: 2px solid #f5f5f5;
 }
 
+.theme-dark .btn-chat {
+  color: #0a0a0a;
+  background: #ccff00;
+  border: 2px solid #0a0a0a;
+  box-shadow: 3px 3px 0 #7000ff;
+}
+
+.theme-dark .btn-chat:hover {
+  color: #0a0a0a;
+  background: #f5f5f5;
+  border-color: #f5f5f5;
+}
+
 .theme-dark .tab.active { color: #0a0a0a; background: #ccff00; }
 
 .theme-dark .auth-page {

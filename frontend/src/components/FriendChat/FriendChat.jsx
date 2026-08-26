@@ -1,83 +1,68 @@
-import { useEffect, useRef, useState } from 'react';
-import { getDirectMessages, postDirectMessage } from '../../api/services';
+import { useEffect, useState } from 'react';
+import { getDirectMessages, postDirectMessage, deleteDirectMessage } from '../../api/services';
+import { useAuth } from '../../context/AuthContextObject';
 import toast from 'react-hot-toast';
-import './FriendChat.css';
+import ChatSidebar from '../ChatSidebar/ChatSidebar';
 
-export default function FriendChat({ friendId, friendName = 'Friend', open, onClose }) {
+export default function FriendChat({ friendId, friendName = 'friend chat', open, onClose }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
-  const ref = useRef(null);
-  const bodyRef = useRef(null);
-  const inputRef = useRef(null);
+
+  const normalize = (items) => items.map((message) => ({
+    id: message._id,
+    senderId: message.from?._id,
+    senderName: message.from?.username || message.from?.firstName || friendName,
+    senderAvatarUrl: message.from?.avatarUrl,
+    text: message.text,
+    timestamp: message.createdAt,
+    isOwnMessage: String(message.from?._id) === String(user?.id),
+  }));
 
   useEffect(() => {
     let mounted = true;
     async function load() {
+      if (!friendId) return;
       try {
-        const res = await getDirectMessages(friendId, 200);
-        if (!mounted) return;
-        setMessages(res.data || []);
-      } catch (e) {
-        // ignore
+        const response = await getDirectMessages(friendId, 200);
+        if (mounted) setMessages(normalize(response.data || []));
+      } catch {
+        if (mounted) toast.error('failed to load messages');
       }
     }
     if (open) load();
     const interval = setInterval(() => { if (open) load(); }, 3000);
     return () => { mounted = false; clearInterval(interval); };
-  }, [friendId, open]);
+  }, [friendId, open, user?.id]);
 
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const el = bodyRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, open]);
-
-  const send = async (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    setSending(true);
+  const send = async (text) => {
     try {
-      await postDirectMessage(friendId, text.trim());
-      setText('');
-      const res = await getDirectMessages(friendId, 200);
-      setMessages(res.data || []);
-      setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-      toast.success('Message sent');
-    } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to send message');
+      await postDirectMessage(friendId, text);
+      const response = await getDirectMessages(friendId, 200);
+      setMessages(normalize(response.data || []));
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'failed to send message');
     }
-    setSending(false);
   };
 
-  if (!open) return null;
+  const remove = async (messageId) => {
+    try {
+      await deleteDirectMessage(messageId);
+      setMessages((current) => current.filter((message) => message.id !== messageId));
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'failed to delete message');
+    }
+  };
 
   return (
-    <div className="chat-drawer">
-      <div className="chat-header">
-        <h4>{friendName}</h4>
-        <button className="chat-close" onClick={onClose}>×</button>
-      </div>
-      <div className="chat-body" ref={bodyRef}>
-        {messages.map((m) => (
-          <div key={m._id} className="chat-message">
-            <div className="chat-meta">
-              <strong>{m.from?.username || m.from?.firstName}</strong>
-              <small>{new Date(m.createdAt).toLocaleString()}</small>
-            </div>
-            <div className="chat-text">{m.text}</div>
-          </div>
-        ))}
-        <div ref={ref} />
-      </div>
-      <form className="chat-input" onSubmit={send}>
-        <input ref={inputRef} value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a message..." />
-        <button type="submit" aria-disabled={sending || !text.trim()} disabled={sending || !text.trim()}>{sending ? 'Sending...' : 'Send'}</button>
-      </form>
-    </div>
+    <ChatSidebar
+      mode="friend"
+      participant={{ id: friendId, name: friendName, isOnline: false }}
+      messages={messages}
+      currentUserId={user?.id}
+      onSend={send}
+      onDelete={remove}
+      onClose={onClose}
+      isOpen={open}
+    />
   );
 }

@@ -68,3 +68,4 @@ export const postClubMessage = (clubId, text) => API.post(`/messages/clubs/${clu
 export const deleteClubMessage = (messageId) => API.delete(`/messages/clubs/${messageId}`);
 export const getDirectMessages = (friendId, limit = 100) => API.get(`/messages/direct/${friendId}?limit=${limit}`);
 export const postDirectMessage = (friendId, text) => API.post(`/messages/direct/${friendId}`, { text });
+export const deleteDirectMessage = (messageId) => API.delete(`/messages/direct/${messageId}`);

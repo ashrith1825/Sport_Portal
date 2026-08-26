@@ -186,9 +186,7 @@ export default function Clubs() {
         </div>
       )}
 
-      {chatClubId && (
-        <ClubChat clubId={chatClubId} open onClose={() => setChatClubId(null)} />
-      )}
+      <ClubChat clubId={chatClubId} open={Boolean(chatClubId)} onClose={() => setChatClubId(null)} />
     </div>
   );
 }

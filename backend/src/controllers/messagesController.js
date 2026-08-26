@@ -125,3 +125,17 @@ export async function deleteClubMessage(req, res, next) {
     return next(error);
   }
 }
+
+export async function deleteDirectMessage(req, res, next) {
+  try {
+    const message = await DirectMessage.findById(req.params.messageId).lean();
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+    if (message.from.toString() !== req.user?.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this message' });
+    }
+    await DirectMessage.findByIdAndDelete(req.params.messageId);
+    return res.json({ success: true });
+  } catch (error) {
+    return next(error);
+  }
+}

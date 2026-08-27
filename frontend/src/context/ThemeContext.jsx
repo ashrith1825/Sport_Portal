@@ -1,12 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-
-const ThemeContext = createContext();
+import { useEffect, useState } from 'react';
+import { ThemeContext } from './ThemeContextObject';
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('sport_portal_theme') || 'light';
-    } catch (e) {
+    } catch {
       return 'light';
     }
   });
@@ -14,7 +13,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     try {
       localStorage.setItem('sport_portal_theme', theme);
-    } catch (e) {
+    } catch {
       // ignore
     }
     const root = document.documentElement;
@@ -34,6 +33,3 @@ export function ThemeProvider({ children }) {
   );
 }
 
-export const useTheme = () => useContext(ThemeContext);
-
-export default ThemeContext;

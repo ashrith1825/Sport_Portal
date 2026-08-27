@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getDirectMessages, postDirectMessage, deleteDirectMessage } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import toast from 'react-hot-toast';
 import ChatSidebar from '../ChatSidebar/ChatSidebar';
 
-export default function FriendChat({ friendId, friendName = 'friend chat', open, onClose }) {
+export default function FriendChat({ friendId, friendName = 'friend chat', open }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
 
-  const normalize = (items) => items.map((message) => ({
+  const normalize = useCallback((items) => items.map((message) => ({
     id: message._id,
     senderId: message.from?._id,
     senderName: message.from?.username || message.from?.firstName || friendName,
@@ -16,7 +16,7 @@ export default function FriendChat({ friendId, friendName = 'friend chat', open,
     text: message.text,
     timestamp: message.createdAt,
     isOwnMessage: String(message.from?._id) === String(user?.id),
-  }));
+  })), [friendName, user?.id]);
 
   useEffect(() => {
     let mounted = true;
@@ -32,7 +32,7 @@ export default function FriendChat({ friendId, friendName = 'friend chat', open,
     if (open) load();
     const interval = setInterval(() => { if (open) load(); }, 3000);
     return () => { mounted = false; clearInterval(interval); };
-  }, [friendId, open, user?.id]);
+  }, [friendId, normalize, open]);
 
   const send = async (text) => {
     try {

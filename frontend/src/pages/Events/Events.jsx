@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getEvents, searchEvents, createEvent, joinEvent, leaveEvent, deleteEvent } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiMapPin, FiClock, FiUsers, FiTrash2, FiX, FiList, FiMap } from 'react-icons/fi';
@@ -26,7 +26,7 @@ export default function Events() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', sportType: '', location: '', eventDate: '', endDate: '', maxParticipants: '', latitude: '', longitude: '' });
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const res = search ? await searchEvents(search) : await getEvents();
       setEvents(res.data);
@@ -35,9 +35,9 @@ export default function Events() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
-  useEffect(() => { fetchEvents(); }, []);
+  useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
   const handleSearch = (e) => {
     e.preventDefault();

@@ -17,7 +17,7 @@ export default function JournalDetail() {
         const res = await getJournal(id);
         if (!mounted) return;
         setJournal(res.data);
-      } catch (err) {
+      } catch {
         toast.error('Failed to load journal');
       } finally {
         setLoading(false);

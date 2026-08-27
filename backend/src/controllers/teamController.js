@@ -136,31 +136,20 @@ export async function requestTeamJoin(req, res, next) {
 
 export async function requestTeamLeave(req, res, next) {
   try {
-    const { teamId, message = '' } = req.body;
+    const { teamId } = req.body;
     const team = await Team.findById(teamId).lean();
     if (!team) return res.status(404).json({ message: 'Team not found' });
-
-    if (team.captain && team.captain.toString() === req.user.id) {
-      return res.status(400).json({ message: 'Captain must transfer leadership before leaving' });
-    }
 
     const isMember = (team.members || []).some((memberId) => memberId.toString() === req.user.id);
     if (!isMember) return res.status(409).json({ message: 'You are not a member of this team' });
 
-    const existingPending = await ClubRequest.findOne({ type: 'TEAM_LEAVE', team: team._id, requestedBy: req.user.id, status: 'PENDING' }).lean();
-    if (existingPending) return res.status(409).json({ message: 'A leave request is already pending' });
+    const update = { $pull: { members: req.user.id } };
+    if (team.captain && team.captain.toString() === req.user.id) update.$set = { captain: null };
+    await Team.findByIdAndUpdate(team._id, update);
+    await User.findByIdAndUpdate(req.user.id, { $pull: { joinedTeams: team._id } });
+    await ClubRequest.deleteMany({ team: team._id, user: req.user.id, type: 'TEAM_LEAVE', status: 'PENDING' });
 
-    const request = await ClubRequest.create({
-      type: 'TEAM_LEAVE',
-      club: team.club,
-      team: team._id,
-      user: req.user.id,
-      requestedBy: req.user.id,
-      message: message || 'Requested team departure approval',
-      status: 'PENDING',
-    });
-
-    return res.status(202).json({ message: 'Team leave request sent', requestId: request._id });
+    return res.json({ message: 'You left the team successfully' });
   } catch (error) {
     return next(error);
   }
@@ -204,10 +193,12 @@ export async function approveTeamRequest(req, res, next) {
     const team = request.team ? await Team.findById(request.team) : null;
     const club = request.club ? await Club.findById(request.club) : null;
 
-    const canAct = (
-      (team && team.captain && team.captain.toString() === req.user.id) ||
-      (club && club.owner && club.owner.toString() === req.user.id)
-    );
+    const canAct = request.type === 'TEAM_DELETE'
+      ? Boolean(club && club.owner && club.owner.toString() === req.user.id)
+      : Boolean(
+        (team && team.captain && team.captain.toString() === req.user.id) ||
+        (club && club.owner && club.owner.toString() === req.user.id)
+      );
 
     if (!canAct) return res.status(403).json({ message: 'Not authorized to review this request' });
 

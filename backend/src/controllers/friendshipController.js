@@ -9,6 +9,9 @@ export async function sendFriendRequest(req, res, next) {
       return res.status(400).json({ message: 'Invalid friend request target' });
     }
 
+    const target = await User.findById(friendId).lean();
+    if (!target) return res.status(404).json({ message: 'User not found' });
+
     const existing = await Friendship.findOne({ $or: [{ user: req.user.id, friend: friendId }, { user: friendId, friend: req.user.id }] });
     if (existing) {
       return res.status(409).json({ message: 'Friendship already exists or is pending' });
@@ -43,6 +46,10 @@ export async function acceptFriendRequest(req, res, next) {
       return res.status(404).json({ message: 'Friend request not found' });
     }
 
+    if (friendship.friend.toString() !== req.user.id || friendship.status !== 'PENDING') {
+      return res.status(403).json({ message: 'Only the recipient can accept a pending friend request' });
+    }
+
     friendship.status = 'ACCEPTED';
     await friendship.save();
     return res.json({ message: 'Friend request accepted' });
@@ -56,6 +63,10 @@ export async function rejectFriendRequest(req, res, next) {
     const friendship = await Friendship.findById(req.params.friendshipId);
     if (!friendship) {
       return res.status(404).json({ message: 'Friend request not found' });
+    }
+
+    if (friendship.friend.toString() !== req.user.id || friendship.status !== 'PENDING') {
+      return res.status(403).json({ message: 'Only the recipient can reject a pending friend request' });
     }
 
     friendship.status = 'REJECTED';
@@ -86,6 +97,12 @@ export async function getPendingRequests(req, res, next) {
 
 export async function removeFriend(req, res, next) {
   try {
+    const friendship = await Friendship.findById(req.params.friendshipId).lean();
+    if (!friendship) return res.status(404).json({ message: 'Friendship not found' });
+    if (friendship.user.toString() !== req.user.id && friendship.friend.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to remove this friendship' });
+    }
+
     await Friendship.findByIdAndDelete(req.params.friendshipId);
     return res.json({ message: 'Friend removed successfully' });
   } catch (error) {

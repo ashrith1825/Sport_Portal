@@ -28,7 +28,7 @@ export default function Clubs() {
     try {
       const res = await getClubs();
       setClubs(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load clubs');
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export default function Clubs() {
     if (!user) return toast.error('Please log in');
     try {
       await leaveClub(id);
-      toast.success('Club leave request sent');
+      toast.success('You left the club');
       await loadClubs();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to leave');

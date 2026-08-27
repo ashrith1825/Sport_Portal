@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getFriends, getPendingRequests, sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend, getAllUsers, sendFriendRequestByCode } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiUserPlus, FiCheck, FiXCircle, FiTrash2, FiSearch, FiClock, FiCopy, FiHash, FiUsers } from 'react-icons/fi';
@@ -21,7 +21,7 @@ export default function Friends() {
   const [chatFriendId, setChatFriendId] = useState(null);
   const [chatFriendName, setChatFriendName] = useState('');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [friendsRes, pendingRes, usersRes] = await Promise.all([
         getFriends(),
@@ -36,9 +36,9 @@ export default function Friends() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSendRequest = async (friendId) => {
     try {

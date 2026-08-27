@@ -21,3 +21,8 @@
 .team-name-link { color: inherit; text-decoration: none; }
 .team-name-link:hover { color: var(--primary-500); text-decoration: underline; }
 @media (max-width: 640px) { .team-detail-topbar, .team-member-row { align-items: stretch; flex-direction: column; } .team-member-actions { justify-content: flex-start; } }
+.team-detail-card { border: 1px solid var(--border-subtle); border-radius: 12px; box-shadow: var(--shadow-md); }
+.team-detail-heading { border-bottom: 1px solid var(--border-subtle); }
+.team-member-row { border: 1px solid var(--border-subtle); border-radius: 8px; box-shadow: none; }
+.team-member-avatar { color: #fff; background: var(--primary-500); border: 0; }
+.btn-danger { background: var(--accent-600); border: 0; border-radius: 8px; box-shadow: var(--shadow-sm); }

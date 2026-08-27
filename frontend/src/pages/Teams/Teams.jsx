@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getClubs, getTeamsByClub, createTeam, deleteTeam, addTeamMember, removeTeamMember, getAllUsers } from '../../api/services';
+import { getClubs, getTeamsByClub, createTeam, deleteTeam, addTeamMember, removeTeamMember, getAllUsers, requestTeamJoin } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiUsers, FiTrash2, FiX, FiUserPlus, FiUserMinus, FiChevronDown, FiChevronUp, FiShield } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -18,6 +18,7 @@ export default function Teams() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState(null);
+  const [joinRequests, setJoinRequests] = useState([]);
   const [form, setForm] = useState({ name: '', description: '', clubId: '' });
 
   const fetchTeams = async (clubId) => {
@@ -47,7 +48,7 @@ export default function Teams() {
         // Auto-select club from URL or first club
         const clubIdFromUrl = searchParams.get('clubId');
         if (clubIdFromUrl) {
-          const club = res.data.find(c => c.id === parseInt(clubIdFromUrl));
+          const club = res.data.find(c => String(c.id) === String(clubIdFromUrl));
           if (club) {
             setSelectedClub(club);
             const teamsRes = await getTeamsByClub(club.id);
@@ -136,6 +137,20 @@ export default function Teams() {
     }
   };
 
+  const handleRequestJoin = async (teamId) => {
+    if (!user) {
+      toast.error('Please log in to request team membership');
+      return;
+    }
+    try {
+      await requestTeamJoin(teamId);
+      setJoinRequests((current) => [...current, String(teamId)]);
+      toast.success('Team join request sent');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to request team membership');
+    }
+  };
+
   if (loading && clubs.length === 0) return <LoadingSpinner />;
 
   return (
@@ -190,6 +205,15 @@ export default function Teams() {
                   </div>
                 </div>
                 <div className="team-actions">
+                  {user && !team.memberIds?.some((id) => String(id) === String(user.id)) && (
+                    <button
+                      className="btn-sm btn-primary"
+                      onClick={(e) => { e.stopPropagation(); handleRequestJoin(team.id); }}
+                      disabled={joinRequests.includes(String(team.id))}
+                    >
+                      <FiUserPlus /> {joinRequests.includes(String(team.id)) ? 'Requested' : 'Request to join'}
+                    </button>
+                  )}
                   {user && selectedClub.ownerId === user.id && (
                     <button className="btn-sm btn-danger" onClick={(e) => { e.stopPropagation(); handleDelete(team.id); }}>
                       <FiTrash2 />

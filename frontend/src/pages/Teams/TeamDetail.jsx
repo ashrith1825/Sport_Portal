@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { deleteTeam, getTeam, removeTeamMember, transferTeamLeadership } from '../../api/services';
+import { deleteTeam, getTeam, removeTeamMember, transferTeamLeadership, requestTeamJoin, requestTeamLeave } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -15,12 +15,14 @@ export default function TeamDetail() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [joinRequested, setJoinRequested] = useState(false);
 
   const userId = user?.id || user?._id;
   const captainId = team?.captainId;
   const clubOwnerId = team?.club?.ownerId || team?.clubOwnerId;
   const isCaptain = !!userId && String(captainId) === String(userId);
   const isClubAdmin = !!userId && String(clubOwnerId) === String(userId);
+  const isMember = !!userId && (team?.memberIds || []).some((id) => String(id) === String(userId));
 
   const loadTeam = useCallback(async () => {
     try {
@@ -78,6 +80,33 @@ export default function TeamDetail() {
     }
   };
 
+  const handleJoin = async () => {
+    setBusy(true);
+    try {
+      await requestTeamJoin(teamId);
+      setJoinRequested(true);
+      toast.success('Team join request sent');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to request team membership');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (!window.confirm('Leave this team?')) return;
+    setBusy(true);
+    try {
+      await requestTeamLeave(teamId);
+      toast.success('You left the team');
+      await loadTeam();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to leave team');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (!team) return <div className="page team-detail-page"><div className="empty-state">Team not found.</div></div>;
 
@@ -91,6 +120,14 @@ export default function TeamDetail() {
           <button className="btn-danger" onClick={handleDelete} disabled={busy}>
             <FiTrash2 /> Delete team
           </button>
+        )}
+        {user && !isCaptain && !isMember && (
+          <button className="btn-primary" onClick={handleJoin} disabled={busy || joinRequested}>
+            <FiUserPlus /> {joinRequested ? 'Request sent' : 'Request to join'}
+          </button>
+        )}
+        {user && isMember && (
+          <button className="btn-secondary" onClick={handleLeave} disabled={busy}>Leave team</button>
         )}
       </div>
 

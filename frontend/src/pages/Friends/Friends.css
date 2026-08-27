@@ -255,10 +255,10 @@
 }
 
 .theme-dark .tab.active {
-  background: #ccff00;
-  color: #0a0a0a;
-  border-color: #f5f5f5;
-  box-shadow: 4px 4px 0 #f5f5f5;
+  background: var(--primary-500);
+  color: #fff;
+  border-color: var(--primary-500);
+  box-shadow: var(--shadow-sm);
 }
 
 /* User List */
@@ -374,8 +374,10 @@
 
 .theme-dark .btn-add-code,
 .theme-dark .btn-join {
-  background: #ccff00;
-  color: #0a0a0a;
+  background: var(--primary-500);
+  color: #fff;
+  border-color: var(--primary-500);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-danger {

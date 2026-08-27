@@ -16,7 +16,7 @@ function normalizeMessages(items, userId) {
   }));
 }
 
-export default function ClubChat({ clubId, open, onClose }) {
+export default function ClubChat({ clubId, open }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [club, setClub] = useState(null);

@@ -9,6 +9,7 @@ import {
   decisionClubRequest,
   approveTeamRequest,
   createTeam,
+  requestTeamJoin,
 } from '../../api/services';
 import ClubChat from '../../components/ClubChat/ClubChat';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -29,6 +30,7 @@ export default function ClubDetail() {
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [teamForm, setTeamForm] = useState({ name: '', description: '' });
   const [activePanel, setActivePanel] = useState('chat');
+  const [teamJoinRequests, setTeamJoinRequests] = useState([]);
 
   const clubAdminId = club?.ownerId || club?.owner?._id || club?.owner;
   const isClubAdmin = !!user && String(clubAdminId) === String(user.id || user._id);
@@ -117,6 +119,18 @@ export default function ClubDetail() {
     }
   };
 
+  const handleTeamJoin = async (teamId) => {
+    if (!user) return toast.error('Please log in to request team membership');
+    if (!isClubMember) return toast.error('Join the club before requesting team membership');
+    try {
+      await requestTeamJoin(teamId);
+      setTeamJoinRequests((current) => [...current, String(teamId)]);
+      toast.success('Team join request sent');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to request team membership');
+    }
+  };
+
   const allPendingTeamRequests = Object.entries(teamRequests).flatMap(([teamId, requests]) =>
     (requests || []).map((request) => ({ ...request, teamId, teamName: (teams.find((team) => String(team.id || team._id) === String(teamId)) || {}).name || 'Team' }))
   );
@@ -197,9 +211,20 @@ export default function ClubDetail() {
                       <Link className="team-name-link" to={`/teams/${team.id || team._id}`}><strong>{team.name}</strong></Link>
                       <small>{team.captainUsername || 'Captain'} • {countLabel(team.memberCount, 'member')}</small>
                     </div>
-                    {team.captainId && String(team.captainId) === String(user?.id || user?._id) && (
-                      <span className="role-badge role-owner">Captain</span>
-                    )}
+                    <div className="team-row-actions">
+                      {team.captainId && String(team.captainId) === String(user?.id || user?._id) && (
+                        <span className="role-badge role-owner">Captain</span>
+                      )}
+                      {user && !team.memberIds?.some((id) => String(id) === String(user.id || user._id)) && (
+                        <button
+                          className="btn-sm btn-join"
+                          onClick={() => handleTeamJoin(team.id || team._id)}
+                          disabled={teamJoinRequests.includes(String(team.id || team._id))}
+                        >
+                          <FiUsers /> {teamJoinRequests.includes(String(team.id || team._id)) ? 'Requested' : 'Request to join'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

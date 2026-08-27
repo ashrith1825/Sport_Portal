@@ -119,6 +119,7 @@
 .team-row small {
   color: var(--text-secondary);
 }
+.team-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; }
 
 .team-create-form {
   display: flex;
@@ -204,9 +205,9 @@
 }
 
 .theme-dark .panel-tabs button {
-  border-color: #f5f5f5;
-  color: #f5f5f5;
-  box-shadow: 3px 3px 0 #7000ff;
+  border-color: var(--border-default);
+  color: var(--text-primary);
+  box-shadow: none;
 }
 
 .panel-tabs button.active {
@@ -216,7 +217,7 @@
 }
 
 .theme-dark .panel-tabs button.active {
-  border-color: #f5f5f5;
+  border-color: var(--primary-500);
 }
 
 .requests-panel {
@@ -243,8 +244,8 @@
 }
 
 .theme-dark .request-item {
-  background: #111;
-  border-color: #f5f5f5;
+  background: var(--bg-tertiary);
+  border-color: var(--border-subtle);
 }
 
 .request-item p {

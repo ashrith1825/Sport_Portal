@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
 /* ============================================
   SPORT PORTAL - NEO-BRUTALIST DESIGN SYSTEM
@@ -15,21 +15,21 @@
 /* CSS Variables - Design Tokens */
 :root {
   /* Primary Colors */
-  --primary-50: #f4ffc7;
-  --primary-100: #e5ff70;
-  --primary-200: #ccff00;
-  --primary-300: #ccff00;
-  --primary-400: #7000ff;
-  --primary-500: #7000ff;
-  --primary-600: #5700c7;
-  --primary-700: #3f0094;
-  --primary-800: #26005c;
-  --primary-900: #0a0a0a;
+  --primary-50: #eef4f7;
+  --primary-100: #dce8ed;
+  --primary-200: #b9d0d9;
+  --primary-300: #8eafbd;
+  --primary-400: #52798b;
+  --primary-500: #285568;
+  --primary-600: #1f4556;
+  --primary-700: #173744;
+  --primary-800: #102a34;
+  --primary-900: #0d2028;
   
   /* Accent Colors */
-  --accent-500: #0a0a0a;
-  --accent-600: #7000ff;
-  --accent-700: #ff0099;
+  --accent-500: #b76042;
+  --accent-600: #984833;
+  --accent-700: #773625;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   
@@ -59,28 +59,28 @@
   --gray-950: #080808;
   
   /* Background Colors */
-  --bg-primary: #ccff00;
+  --bg-primary: #f5f7f8;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f4f4f0;
+  --bg-tertiary: #edf1f3;
   --bg-elevated: #ffffff;
-  --bg-hover: #ff0099;
+  --bg-hover: #e8eef1;
   
   /* Border Colors */
-  --border-subtle: #0a0a0a;
-  --border-default: #0a0a0a;
-  --border-strong: #0a0a0a;
+  --border-subtle: #d9e1e5;
+  --border-default: #cbd6db;
+  --border-strong: #8ea2ab;
   
   /* Text Colors */
-  --text-primary: #111111;
-  --text-secondary: #303030;
-  --text-tertiary: #555555;
-  --text-muted: #666666;
+  --text-primary: #17242b;
+  --text-secondary: #52636b;
+  --text-tertiary: #718189;
+  --text-muted: #8a999f;
   
   /* Shadows */
-  --shadow-sm: 4px 4px 0 #0a0a0a;
-  --shadow-md: 6px 6px 0 #0a0a0a;
-  --shadow-lg: 8px 8px 0 #0a0a0a;
-  --shadow-xl: 10px 10px 0 #0a0a0a;
+  --shadow-sm: 0 1px 3px rgba(23, 36, 43, 0.08), 0 1px 2px rgba(23, 36, 43, 0.04);
+  --shadow-md: 0 8px 24px rgba(23, 36, 43, 0.09);
+  --shadow-lg: 0 16px 40px rgba(23, 36, 43, 0.12);
+  --shadow-xl: 0 24px 60px rgba(23, 36, 43, 0.14);
   --shadow-glow: none;
   
   /* Spacing */
@@ -113,9 +113,9 @@
   -moz-osx-font-smoothing: grayscale;
   
   /* Transitions */
-  --transition-fast: 180ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --transition-normal: 320ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --transition-slow: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-fast: 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  --transition-normal: 250ms cubic-bezier(0.23, 1, 0.32, 1);
+  --transition-slow: 350ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 html {
@@ -338,26 +338,26 @@ input, textarea, select {
 
 /* Dark theme overrides */
 .theme-dark {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #151515;
-  --bg-tertiary: #1f1f1f;
-  --bg-elevated: #252525;
-  --bg-hover: #303030;
-  --border-subtle: #f5f5f5;
-  --border-default: #f5f5f5;
-  --border-strong: #ccff00;
-  --text-primary: #f5f5f5;
-  --text-secondary: rgba(245, 245, 245, 0.82);
-  --text-tertiary: rgba(245, 245, 245, 0.68);
-  --text-muted: rgba(245, 245, 245, 0.52);
-  --accent-500: #ccff00;
-  --accent-600: #7000ff;
-  --accent-700: #ff0099;
-  --shadow-sm: 4px 4px 0 #ccff00;
-  --shadow-md: 6px 6px 0 #7000ff;
-  --shadow-lg: 8px 8px 0 #ff0099;
-  --shadow-xl: 10px 10px 0 #7000ff;
-  background-color: #0a0a0a;
+  --bg-primary: #10191e;
+  --bg-secondary: #172329;
+  --bg-tertiary: #1d2c33;
+  --bg-elevated: #24353d;
+  --bg-hover: #29404a;
+  --border-subtle: #2d414a;
+  --border-default: #405762;
+  --border-strong: #718892;
+  --text-primary: #eef3f4;
+  --text-secondary: #c0ced2;
+  --text-tertiary: #92a5ab;
+  --text-muted: #71858c;
+  --accent-500: #d47d5e;
+  --accent-600: #b76042;
+  --accent-700: #984833;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.35);
+  background-color: #10191e;
 }
 
 .theme-dark .card,
@@ -368,25 +368,15 @@ input, textarea, select {
   box-shadow: var(--shadow-md);
 }
 
-.theme-dark .card:nth-child(3n + 2),
-.theme-dark .stat-card:nth-child(3n + 2),
-.theme-dark .action-card:nth-child(3n + 2) {
-  box-shadow: 6px 6px 0 #7000ff;
-}
-
-.theme-dark .card:nth-child(3n),
-.theme-dark .stat-card:nth-child(3n),
-.theme-dark .action-card:nth-child(3n) {
-  box-shadow: 6px 6px 0 #ff0099;
-}
-
 .theme-dark .card,
 .theme-dark .modal,
 .theme-dark .auth-card,
 .theme-dark .stat-card,
 .theme-dark .action-card {
-  background: #151515;
-  border: 4px solid #f5f5f5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-dark .search-bar,
@@ -397,28 +387,28 @@ input, textarea, select {
 .theme-dark .form-group input,
 .theme-dark .form-group textarea,
 .theme-dark .form-group select {
-  background: #151515;
-  border: 2px solid #f5f5f5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .theme-dark .btn-primary {
-  color: #0a0a0a;
-  background: #ccff00;
-  border: 3px solid #0a0a0a;
-  box-shadow: 5px 5px 0 #f5f5f5;
+  color: #fff;
+  background: var(--primary-500);
+  border: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-dark .btn-secondary {
-  color: #f5f5f5;
-  background: #151515;
-  border: 2px solid #f5f5f5;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .theme-dark .btn-chat {
-  color: #0a0a0a;
-  background: #ccff00;
-  border: 2px solid #0a0a0a;
-  box-shadow: 3px 3px 0 #7000ff;
+  color: #fff;
+  background: var(--primary-500);
+  border: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-dark .btn-chat:hover {
@@ -427,15 +417,12 @@ input, textarea, select {
   border-color: #f5f5f5;
 }
 
-.theme-dark .tab.active { color: #0a0a0a; background: #ccff00; }
+.theme-dark .tab.active { color: #fff; background: var(--primary-500); }
 
-.theme-dark .auth-page {
-  background: #0a0a0a;
-}
+.theme-dark .auth-page { background: var(--bg-primary); }
 
-.theme-dark .auth-page::before { background: rgba(112, 0, 255, 0.16); }
-.theme-dark .auth-page::after { background: rgba(255, 0, 153, 0.13); }
-.theme-dark .auth-logo { color: #0a0a0a; background: #ccff00; box-shadow: 6px 6px 0 #ff0099; }
+.theme-dark .auth-page::before, .theme-dark .auth-page::after { background: rgba(82, 121, 139, 0.12); }
+.theme-dark .auth-logo { color: #fff; background: var(--primary-500); box-shadow: var(--shadow-sm); }
 
 .theme-dark input,
 .theme-dark textarea,
@@ -444,8 +431,8 @@ input, textarea, select {
 }
 
 .theme-dark ::selection {
-  background: #ccff00;
-  color: #0a0a0a;
+  background: var(--primary-300);
+  color: var(--text-primary);
 }
 
 .theme-dark .home-page {
@@ -464,5 +451,21 @@ input, textarea, select {
 .theme-dark body {
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.theme-dark body h1,
+.theme-dark body h2,
+.theme-dark body h3,
+.theme-dark body h4,
+.theme-dark body .card-title,
+.theme-dark body .sport-badge,
+.theme-dark body .page-header,
+.theme-dark body .page-subtitle {
+  color: var(--text-primary);
+}
+
+.theme-dark body .sport-badge {
+  background: var(--bg-tertiary);
+  border-color: var(--border-subtle);
 }
 

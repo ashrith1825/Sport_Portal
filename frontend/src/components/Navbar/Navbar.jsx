@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContextObject';
 import {
   FiHome, FiCalendar, FiBookOpen, FiLogOut, FiUser, FiShield, FiMenu, FiX, FiUserPlus, FiLogIn, FiMoon, FiSun,
 } from 'react-icons/fi';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContextObject';
 import { useState } from 'react';
 import './Navbar.css';
 import logoSrc from '../../assets/logo.png';
@@ -65,7 +65,7 @@ export default function Navbar() {
       </div>
 
       <div className={`navbar-user ${menuOpen ? 'open' : ''}`}>
-        <button className="theme-toggle" onClick={() => { try { toggle(); } catch(e){} }} aria-label="Toggle theme">
+        <button className="theme-toggle" onClick={toggle} aria-label="Toggle theme">
           {theme === 'dark' ? <FiSun /> : <FiMoon />}
         </button>
         {user && (

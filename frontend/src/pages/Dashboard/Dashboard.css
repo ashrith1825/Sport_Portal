@@ -188,6 +188,19 @@
   transition: all var(--transition-normal);
 }
 
+/* Keep dashboard surfaces quiet and information-dense. */
+.dashboard-header h1, .quick-actions h2, .stat-card h3 { font-family: 'DM Sans', sans-serif; }
+.highlight { background: none; color: var(--primary-500); -webkit-text-fill-color: currentColor; }
+.stat-card { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.stat-card::before { display: none; }
+.stat-card:hover { transform: translateY(-3px); border-color: var(--primary-300); box-shadow: var(--shadow-md); }
+.stat-icon { border-radius: 10px; background: var(--primary-100); color: var(--primary-600); box-shadow: none; }
+.stat-item { background: var(--bg-tertiary); border-left: 2px solid var(--primary-400); border-radius: 4px; }
+.stat-item:hover { background: var(--bg-hover); }
+.stat-link { color: var(--primary-500); }
+.action-card { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: none; }
+.action-card:hover { color: var(--primary-600); background: var(--primary-50); border-color: var(--primary-300); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
 .action-card svg {
   font-size: 1.75rem;
   color: var(--primary-500);

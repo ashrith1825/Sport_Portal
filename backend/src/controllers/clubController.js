@@ -180,21 +180,11 @@ export async function leaveClub(req, res, next) {
       return res.status(400).json({ message: 'Owner cannot leave their own club' });
     }
 
-    const existingPending = await ClubRequest.findOne({ type: 'TEAM_LEAVE', club: club._id, requestedBy: req.user.id, status: 'PENDING' }).lean();
-    if (existingPending) {
-      return res.status(409).json({ message: 'Your leave request is already pending' });
-    }
+    await Club.findByIdAndUpdate(club._id, { $pull: { members: req.user.id } });
+    await User.findByIdAndUpdate(req.user.id, { $pull: { joinedClubs: club._id } });
+    await ClubRequest.deleteMany({ club: club._id, user: req.user.id, type: { $in: ['CLUB_JOIN', 'TEAM_LEAVE'] }, status: 'PENDING' });
 
-    await ClubRequest.create({
-      type: 'TEAM_LEAVE',
-      club: club._id,
-      user: req.user.id,
-      requestedBy: req.user.id,
-      message: 'Requested club leave approval',
-      status: 'PENDING',
-    });
-
-    return res.status(202).json({ message: 'Leave request sent to club admin' });
+    return res.json({ message: 'You left the club successfully' });
   } catch (error) {
     return next(error);
   }

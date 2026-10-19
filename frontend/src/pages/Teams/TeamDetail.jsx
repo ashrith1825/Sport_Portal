@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { deleteTeam, getTeam, removeTeamMember, transferTeamLeadership, requestTeamJoin, requestTeamLeave } from '../../api/services';
+import { deleteTeam, getTeam, removeTeamMember, transferTeamLeadership, joinTeam, leaveTeam } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -15,7 +15,6 @@ export default function TeamDetail() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [joinRequested, setJoinRequested] = useState(false);
 
   const userId = user?.id || user?._id;
   const captainId = team?.captainId;
@@ -83,11 +82,11 @@ export default function TeamDetail() {
   const handleJoin = async () => {
     setBusy(true);
     try {
-      await requestTeamJoin(teamId);
-      setJoinRequested(true);
-      toast.success('Team join request sent');
+      await joinTeam(teamId);
+      toast.success('You joined the team');
+      await loadTeam();
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to request team membership');
+      toast.error(error?.response?.data?.message || 'Failed to join team');
     } finally {
       setBusy(false);
     }
@@ -97,7 +96,7 @@ export default function TeamDetail() {
     if (!window.confirm('Leave this team?')) return;
     setBusy(true);
     try {
-      await requestTeamLeave(teamId);
+      await leaveTeam(teamId);
       toast.success('You left the team');
       await loadTeam();
     } catch (error) {
@@ -122,8 +121,8 @@ export default function TeamDetail() {
           </button>
         )}
         {user && !isCaptain && !isMember && (
-          <button className="btn-primary" onClick={handleJoin} disabled={busy || joinRequested}>
-            <FiUserPlus /> {joinRequested ? 'Request sent' : 'Request to join'}
+          <button className="btn-primary" onClick={handleJoin} disabled={busy}>
+            <FiUserPlus /> Join team
           </button>
         )}
         {user && isMember && (
@@ -161,7 +160,7 @@ export default function TeamDetail() {
                     <span>{member.firstName} {member.lastName}</span>
                   </div>
                   {memberIsCaptain && <span className="captain-badge"><FiCheck /> Captain</span>}
-                  {(isCaptain || isClubAdmin) && !memberIsCaptain && (
+                  {(isCaptain || isClubAdmin) && (!memberIsCaptain || (isClubAdmin && String(memberId) !== String(userId))) && (
                     <div className="team-member-actions">
                       {isCaptain && (
                         <button className="btn-sm btn-secondary" onClick={() => handleTransfer(memberId, member.username)} disabled={busy}>

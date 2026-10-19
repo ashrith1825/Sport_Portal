@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getClubs, getTeamsByClub, createTeam, deleteTeam, addTeamMember, removeTeamMember, getAllUsers, requestTeamJoin } from '../../api/services';
+import { getClubs, getTeamsByClub, createTeam, deleteTeam, removeTeamMember, joinTeam } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiUsers, FiTrash2, FiX, FiUserPlus, FiUserMinus, FiChevronDown, FiChevronUp, FiShield } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -14,11 +14,9 @@ export default function Teams() {
   const [clubs, setClubs] = useState([]);
   const [selectedClub, setSelectedClub] = useState(null);
   const [teams, setTeams] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState(null);
-  const [joinRequests, setJoinRequests] = useState([]);
   const [form, setForm] = useState({ name: '', description: '', clubId: '' });
 
   const fetchTeams = async (clubId) => {
@@ -27,15 +25,6 @@ export default function Teams() {
       setTeams(res.data);
     } catch {
       toast.error('Failed to load teams');
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const res = await getAllUsers();
-      setUsers(res.data);
-    } catch {
-      console.error('Failed to load users');
     }
   };
 
@@ -63,7 +52,6 @@ export default function Teams() {
     };
     
     loadData();
-    fetchUsers();
   }, [searchParams]);
 
   const handleClubSelect = async (club) => {
@@ -109,20 +97,6 @@ export default function Teams() {
     }
   };
 
-  const handleAddMember = async (teamId, userId) => {
-    if (!user) {
-      toast.error('Please log in to manage team members');
-      return;
-    }
-    try {
-      await addTeamMember(teamId, userId);
-      toast.success('Member added!');
-      await fetchTeams(selectedClub.id);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add member');
-    }
-  };
-
   const handleRemoveMember = async (teamId, userId) => {
     if (!user) {
       toast.error('Please log in to manage team members');
@@ -137,17 +111,17 @@ export default function Teams() {
     }
   };
 
-  const handleRequestJoin = async (teamId) => {
+  const handleJoin = async (teamId) => {
     if (!user) {
-      toast.error('Please log in to request team membership');
+      toast.error('Please log in to join a team');
       return;
     }
     try {
-      await requestTeamJoin(teamId);
-      setJoinRequests((current) => [...current, String(teamId)]);
-      toast.success('Team join request sent');
+      await joinTeam(teamId);
+      toast.success('You joined the team');
+      await fetchTeams(selectedClub.id);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to request team membership');
+      toast.error(err.response?.data?.message || 'Failed to join team');
     }
   };
 
@@ -160,7 +134,7 @@ export default function Teams() {
           <h1>Teams</h1>
           <p className="page-subtitle">Manage teams within your clubs</p>
         </div>
-        {selectedClub && user && selectedClub.ownerId === user.id && (
+        {selectedClub && user && (
           <button className="btn-primary" onClick={() => setShowModal(true)}>
             <FiPlus /> Create Team
           </button>
@@ -205,13 +179,12 @@ export default function Teams() {
                   </div>
                 </div>
                 <div className="team-actions">
-                  {user && !team.memberIds?.some((id) => String(id) === String(user.id)) && (
+                  {user && !team.memberIds?.some((id) => String(id) === String(user.id || user._id)) && (
                     <button
                       className="btn-sm btn-primary"
-                      onClick={(e) => { e.stopPropagation(); handleRequestJoin(team.id); }}
-                      disabled={joinRequests.includes(String(team.id))}
+                      onClick={(e) => { e.stopPropagation(); handleJoin(team.id); }}
                     >
-                      <FiUserPlus /> {joinRequests.includes(String(team.id)) ? 'Requested' : 'Request to join'}
+                      <FiUserPlus /> Join team
                     </button>
                   )}
                   {user && selectedClub.ownerId === user.id && (
@@ -236,7 +209,7 @@ export default function Teams() {
                             <div className="member-avatar">{member.username[0].toUpperCase()}</div>
                             <span className="member-name">{member.username}</span>
                             {member.id === team.captainId && <span className="captain-badge">Captain</span>}
-                            {user && (selectedClub.ownerId === user.id || team.captainId === user.id) && member.id !== team.captainId && (
+                            {user && (selectedClub.ownerId === user.id || team.captainId === user.id) && (member.id !== team.captainId || (selectedClub.ownerId === user.id && member.id !== user.id)) && (
                               <button className="btn-icon" onClick={() => handleRemoveMember(team.id, member.id)}>
                                 <FiUserMinus />
                               </button>
@@ -249,23 +222,6 @@ export default function Teams() {
                     </div>
                   </div>
 
-                  {user && (selectedClub.ownerId === user.id || team.captainId === user.id) && (
-                    <div className="add-member-section">
-                      <h4>Add Member</h4>
-                      <div className="add-member-list">
-                        {users
-                          .filter(u => !team.members?.some(m => m.id === u.id))
-                          .slice(0, 5)
-                          .map((u) => (
-                            <button key={u.id} className="add-member-btn" onClick={() => handleAddMember(team.id, u.id)}>
-                              <div className="member-avatar small">{u.username[0].toUpperCase()}</div>
-                              <span>{u.username}</span>
-                              <FiUserPlus />
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

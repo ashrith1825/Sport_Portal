@@ -1,20 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import {
   getClub,
-  getClubRequests,
   getTeamsByClub,
-  getTeamRequests,
-  decisionClubRequest,
-  approveTeamRequest,
   createTeam,
-  requestTeamJoin,
+  joinTeam,
+  removeClubMember,
 } from '../../api/services';
 import ClubChat from '../../components/ClubChat/ClubChat';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { FiArrowLeft, FiPlus, FiUsers, FiLayers, FiCheck, FiX, FiMessageSquare, FiShield } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiUsers, FiLayers, FiUserMinus } from 'react-icons/fi';
 import { countLabel } from '../../utils/countLabel';
 import './ClubDetail.css';
 
@@ -24,24 +21,12 @@ export default function ClubDetail() {
   const { user } = useAuth();
   const [club, setClub] = useState(null);
   const [teams, setTeams] = useState([]);
-  const [clubRequests, setClubRequests] = useState([]);
-  const [teamRequests, setTeamRequests] = useState({});
   const [loading, setLoading] = useState(true);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [teamForm, setTeamForm] = useState({ name: '', description: '' });
-  const [activePanel, setActivePanel] = useState('chat');
-  const [teamJoinRequests, setTeamJoinRequests] = useState([]);
 
   const clubAdminId = club?.ownerId || club?.owner?._id || club?.owner;
   const isClubAdmin = !!user && String(clubAdminId) === String(user.id || user._id);
-  const clubMemberIds = Array.isArray(club?.memberIds) ? club.memberIds : [];
-  const isClubMember = !!user && (clubMemberIds.some((id) => String(id) === String(user.id || user._id)) || isClubAdmin);
-  const teamCaptainIds = useMemo(
-    () => new Set((teams || []).filter((team) => String(team.captainId) === String(user?.id || user?._id)).map((team) => team.id || team._id)),
-    [teams, user]
-  );
-  const canReviewRequests = isClubAdmin || teamCaptainIds.size > 0;
-
   const loadClubData = useCallback(async () => {
     if (!clubId) return;
     setLoading(true);
@@ -53,32 +38,14 @@ export default function ClubDetail() {
 
       const nextClub = clubRes.data;
       const nextTeams = teamRes.data || [];
-      const currentUserId = user?.id || user?._id;
-      const nextClubAdmin = String(nextClub.ownerId) === String(currentUserId);
-      const nextRequests = nextClubAdmin ? (await getClubRequests(clubId)).data || [] : [];
       setClub(nextClub);
       setTeams(nextTeams);
-      setClubRequests(nextRequests);
-
-      if (nextTeams.length) {
-        const teamRequestEntries = await Promise.all(
-          nextTeams
-            .filter((team) => nextClubAdmin || String(team.captainId) === String(currentUserId))
-            .map(async (team) => {
-              const res = await getTeamRequests(team.id || team._id);
-              return [team.id || team._id, res.data || []];
-            })
-        );
-        setTeamRequests(Object.fromEntries(teamRequestEntries));
-      } else {
-        setTeamRequests({});
-      }
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to load club');
     } finally {
       setLoading(false);
     }
-  }, [clubId, user]);
+  }, [clubId]);
 
   useEffect(() => {
     loadClubData();
@@ -90,7 +57,7 @@ export default function ClubDetail() {
     if (!clubId) return;
     try {
       await createTeam({ clubId, name: teamForm.name, description: teamForm.description });
-      toast.success('Team creation requested');
+      toast.success('Team created');
       setTeamForm({ name: '', description: '' });
       setShowCreateTeam(false);
       await loadClubData();
@@ -99,41 +66,27 @@ export default function ClubDetail() {
     }
   };
 
-  const handleClubRequestDecision = async (requestId, decision) => {
-    try {
-      await decisionClubRequest(requestId, decision);
-      toast.success(decision === 'APPROVED' ? 'Request approved' : 'Request rejected');
-      await loadClubData();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to update request');
-    }
-  };
-
-  const handleTeamRequestDecision = async (requestId, decision) => {
-    try {
-      await approveTeamRequest(requestId, decision);
-      toast.success(decision === 'APPROVED' ? 'Team request approved' : 'Team request rejected');
-      await loadClubData();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to update team request');
-    }
-  };
-
   const handleTeamJoin = async (teamId) => {
-    if (!user) return toast.error('Please log in to request team membership');
-    if (!isClubMember) return toast.error('Join the club before requesting team membership');
+    if (!user) return toast.error('Please log in to join a team');
     try {
-      await requestTeamJoin(teamId);
-      setTeamJoinRequests((current) => [...current, String(teamId)]);
-      toast.success('Team join request sent');
+      await joinTeam(teamId);
+      toast.success('You joined the team');
+      await loadClubData();
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to request team membership');
+      toast.error(error?.response?.data?.message || 'Failed to join team');
     }
   };
 
-  const allPendingTeamRequests = Object.entries(teamRequests).flatMap(([teamId, requests]) =>
-    (requests || []).map((request) => ({ ...request, teamId, teamName: (teams.find((team) => String(team.id || team._id) === String(teamId)) || {}).name || 'Team' }))
-  );
+  const handleRemoveClubMember = async (memberId, username) => {
+    if (!window.confirm(`Remove ${username} from this club and its teams?`)) return;
+    try {
+      await removeClubMember(clubId, memberId);
+      toast.success('Club member removed');
+      await loadClubData();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to remove club member');
+    }
+  };
 
   if (loading) return <LoadingSpinner />;
   if (!club) {
@@ -169,14 +122,14 @@ export default function ClubDetail() {
           <div className="club-detail-section">
             <div className="section-heading-row">
               <h2>Teams</h2>
-              {isClubMember && (
+              {user && (
                 <button className="btn-primary" onClick={() => setShowCreateTeam((current) => !current)}>
                   <FiPlus /> Create Team
                 </button>
               )}
             </div>
 
-            {showCreateTeam && isClubMember && (
+            {showCreateTeam && user && (
               <form className="team-create-form" onSubmit={handleCreateTeam}>
                 <div className="form-group">
                   <label>Team name</label>
@@ -195,7 +148,7 @@ export default function ClubDetail() {
                   />
                 </div>
                 <div className="team-create-actions">
-                  <button type="submit" className="btn-primary">Submit request</button>
+                  <button type="submit" className="btn-primary">Create Team</button>
                   <button type="button" className="btn-secondary" onClick={() => setShowCreateTeam(false)}>Cancel</button>
                 </div>
               </form>
@@ -219,9 +172,8 @@ export default function ClubDetail() {
                         <button
                           className="btn-sm btn-join"
                           onClick={() => handleTeamJoin(team.id || team._id)}
-                          disabled={teamJoinRequests.includes(String(team.id || team._id))}
                         >
-                          <FiUsers /> {teamJoinRequests.includes(String(team.id || team._id)) ? 'Requested' : 'Request to join'}
+                          <FiUsers /> Join team
                         </button>
                       )}
                     </div>
@@ -230,75 +182,36 @@ export default function ClubDetail() {
               )}
             </div>
           </div>
+
+          <div className="club-detail-section">
+            <div className="section-heading-row">
+              <h2>Club members</h2>
+              <span>{club.memberCount}</span>
+            </div>
+            <div className="club-members-list">
+              {(club.members || []).map((member) => (
+                <div className="club-member-row" key={member.id}>
+                  <div>
+                    <strong>{member.username}</strong>
+                    <small>{member.id === clubAdminId ? 'Club admin' : `${member.firstName} ${member.lastName}`}</small>
+                  </div>
+                  {isClubAdmin && member.id !== clubAdminId && (
+                    <button
+                      className="btn-sm btn-danger"
+                      onClick={() => handleRemoveClubMember(member.id, member.username)}
+                      aria-label={`Remove ${member.username} from club`}
+                    >
+                      <FiUserMinus /> Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         <aside className="club-detail-panel">
-          {canReviewRequests ? (
-            <div className="panel-tabs">
-              <button className={activePanel === 'chat' ? 'active' : ''} onClick={() => setActivePanel('chat')}>
-                <FiMessageSquare /> Chat
-              </button>
-              <button className={activePanel === 'requests' ? 'active' : ''} onClick={() => setActivePanel('requests')}>
-                <FiShield /> Requests
-              </button>
-            </div>
-          ) : null}
-
-          {activePanel === 'chat' ? (
-            <ClubChat clubId={clubId} open={true} />
-          ) : (
-            <div className="requests-panel">
-              <h3>Pending requests</h3>
-
-              {clubRequests.length === 0 && allPendingTeamRequests.length === 0 ? (
-                <p className="muted-text">No pending requests.</p>
-              ) : null}
-
-              {clubRequests.length > 0 && (
-                <div className="request-group">
-                  <h4>Club requests</h4>
-                  {clubRequests.map((request) => (
-                    <div key={request._id || request.id} className="request-item">
-                      <div>
-                        <strong>{request.user?.username || 'Member'}</strong>
-                        <p>{(request.type || 'CLUB').replace(/_/g, ' ').toLowerCase()}</p>
-                      </div>
-                      <div className="request-actions">
-                        <button className="btn-sm btn-success" onClick={() => handleClubRequestDecision(request._id || request.id, 'APPROVED')}>
-                          <FiCheck /> Approve
-                        </button>
-                        <button className="btn-sm btn-danger" onClick={() => handleClubRequestDecision(request._id || request.id, 'REJECTED')}>
-                          <FiX /> Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {allPendingTeamRequests.length > 0 && (
-                <div className="request-group">
-                  <h4>Team requests</h4>
-                  {allPendingTeamRequests.map((request) => (
-                    <div key={request._id || request.id} className="request-item">
-                      <div>
-                        <strong>{request.user?.username || 'Member'}</strong>
-                        <p>{request.teamName} • {(request.type || 'TEAM').replace(/_/g, ' ').toLowerCase()}</p>
-                      </div>
-                      <div className="request-actions">
-                        <button className="btn-sm btn-success" onClick={() => handleTeamRequestDecision(request._id || request.id, 'APPROVED')}>
-                          <FiCheck /> Approve
-                        </button>
-                        <button className="btn-sm btn-danger" onClick={() => handleTeamRequestDecision(request._id || request.id, 'REJECTED')}>
-                          <FiX /> Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <ClubChat clubId={clubId} open={true} />
         </aside>
       </div>
     </div>

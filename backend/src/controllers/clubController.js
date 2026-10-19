@@ -1,8 +1,25 @@
 import Club from '../models/Club.js';
 import User from '../models/User.js';
 import Team from '../models/Team.js';
-import ClubRequest from '../models/ClubRequest.js';
 import { toClubDto } from './format.js';
+
+async function removeMemberFromClub(club, userId) {
+  const teams = await Team.find({ club: club._id }).select('_id').lean();
+  const teamIds = teams.map((team) => team._id);
+
+  await Club.findByIdAndUpdate(club._id, { $pull: { members: userId } });
+  await Team.updateMany(
+    { club: club._id, captain: userId },
+    { $set: { captain: null }, $pull: { members: userId } }
+  );
+  await Team.updateMany(
+    { club: club._id, captain: { $ne: userId } },
+    { $pull: { members: userId } }
+  );
+  await User.findByIdAndUpdate(userId, {
+    $pull: { joinedClubs: club._id, joinedTeams: { $in: teamIds } },
+  });
+}
 
 async function enrichClub(club) {
   if (!club) return null;
@@ -26,7 +43,9 @@ export async function getClubs(req, res, next) {
 
 export async function getClubById(req, res, next) {
   try {
-    const club = await Club.findById(req.params.id).populate('owner', 'username');
+    const club = await Club.findById(req.params.id)
+      .populate('owner', 'username')
+      .populate('members', 'username firstName lastName');
     if (!club) {
       return res.status(404).json({ message: 'Club not found' });
     }
@@ -144,26 +163,9 @@ export async function joinClub(req, res, next) {
       return res.status(404).json({ message: 'Club not found' });
     }
 
-    const alreadyMember = (club.members || []).some((memberId) => memberId.toString() === req.user.id);
-    if (alreadyMember) {
-      return res.status(409).json({ message: 'You are already a member of this club' });
-    }
-
-    const existingPending = await ClubRequest.findOne({ type: 'CLUB_JOIN', club: club._id, requestedBy: req.user.id, status: 'PENDING' }).lean();
-    if (existingPending) {
-      return res.status(409).json({ message: 'A club join request is already pending' });
-    }
-
-    const request = await ClubRequest.create({
-      type: 'CLUB_JOIN',
-      club: club._id,
-      user: req.user.id,
-      requestedBy: req.user.id,
-      message: 'Requested club membership',
-      status: 'PENDING',
-    });
-
-    return res.status(202).json({ message: 'Club join request sent', requestId: request._id });
+    await Club.findByIdAndUpdate(club._id, { $addToSet: { members: req.user.id } });
+    await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedClubs: club._id } });
+    return res.json({ message: 'You joined the club successfully' });
   } catch (error) {
     return next(error);
   }
@@ -180,82 +182,30 @@ export async function leaveClub(req, res, next) {
       return res.status(400).json({ message: 'Owner cannot leave their own club' });
     }
 
-    await Club.findByIdAndUpdate(club._id, { $pull: { members: req.user.id } });
-    await User.findByIdAndUpdate(req.user.id, { $pull: { joinedClubs: club._id } });
-    await ClubRequest.deleteMany({ club: club._id, user: req.user.id, type: { $in: ['CLUB_JOIN', 'TEAM_LEAVE'] }, status: 'PENDING' });
-
+    await removeMemberFromClub(club, req.user.id);
     return res.json({ message: 'You left the club successfully' });
   } catch (error) {
     return next(error);
   }
 }
 
-export async function getClubRequests(req, res, next) {
+export async function removeClubMember(req, res, next) {
   try {
-    const club = await Club.findById(req.params.id).select('owner').lean();
-    if (!club) return res.status(404).json({ message: 'Club not found' });
-    if (club.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Only the club admin can view these requests' });
-    }
-
-    const requests = await ClubRequest.find({ club: req.params.id, status: 'PENDING' })
-      .sort({ createdAt: -1 })
-      .populate('user', 'username firstName lastName')
-      .populate('team', 'name')
-      .lean();
-
-    return res.json(requests);
-  } catch (error) {
-    return next(error);
-  }
-}
-
-export async function decisionClubRequest(req, res, next) {
-  try {
-    const { requestId } = req.params;
-    const { decision } = req.body;
-    const request = await ClubRequest.findById(requestId);
-    if (!request) {
-      return res.status(404).json({ message: 'Request not found' });
-    }
-
-    const club = await Club.findById(request.club);
+    const club = await Club.findById(req.params.id);
     if (!club) {
       return res.status(404).json({ message: 'Club not found' });
     }
-
     if (club.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Only the club admin can review this request' });
+      return res.status(403).json({ message: 'Only the club admin can remove club members' });
     }
-
-    if (!['APPROVED', 'REJECTED'].includes(decision)) {
-      return res.status(400).json({ message: 'decision must be APPROVED or REJECTED' });
+    if (club.owner.toString() === req.params.userId) {
+      return res.status(400).json({ message: 'The club admin cannot be removed' });
     }
+    const isMember = club.members.some((memberId) => memberId.toString() === req.params.userId);
+    if (!isMember) return res.status(404).json({ message: 'User is not a member of this club' });
 
-    request.status = decision;
-    request.reviewedBy = req.user.id;
-    await request.save();
-
-    if (decision === 'APPROVED') {
-      if (request.type === 'CLUB_JOIN') {
-        await Club.findByIdAndUpdate(request.club, { $addToSet: { members: request.user } });
-        await User.findByIdAndUpdate(request.user, { $addToSet: { joinedClubs: request.club } });
-      }
-
-      if (request.type === 'TEAM_CREATE') {
-        const team = await Team.create({
-          name: request.name || 'New Team',
-          description: request.description || '',
-          club: request.club,
-          captain: request.user,
-          members: [request.user],
-        });
-        await Club.findByIdAndUpdate(request.club, { $addToSet: { teams: team._id } });
-        await User.findByIdAndUpdate(request.user, { $addToSet: { joinedTeams: team._id } });
-      }
-    }
-
-    return res.json({ message: `Request ${decision.toLowerCase()}` });
+    await removeMemberFromClub(club, req.params.userId);
+    return res.json({ message: 'Club member removed successfully' });
   } catch (error) {
     return next(error);
   }

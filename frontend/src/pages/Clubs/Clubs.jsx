@@ -70,7 +70,7 @@ export default function Clubs() {
     if (!user) return toast.error('Please log in');
     try {
       await joinClub(id);
-      toast.success('Club join request sent');
+      toast.success('You joined the club');
       await loadClubs();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to join');

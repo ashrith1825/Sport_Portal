@@ -7,7 +7,7 @@ function toId(value) {
 }
 
 function mapIds(list = []) {
-  return list.map((item) => item.toString());
+  return list.map((item) => toId(item?._id ?? item));
 }
 
 export function toUserDto(user) {
@@ -47,6 +47,14 @@ export function toClubDto(club) {
     memberCount: Number(doc.memberCount ?? doc.members?.length ?? 0),
     teamCount: Number(doc.teamCount ?? doc.teams?.length ?? 0),
     memberIds: mapIds(doc.members || []),
+    members: (doc.members || [])
+      .filter((member) => member && typeof member === 'object' && member.username)
+      .map((member) => ({
+        id: toId(member._id ?? member.id),
+        username: member.username,
+        firstName: member.firstName || '',
+        lastName: member.lastName || '',
+      })),
     createdAt: toIso(doc.createdAt),
     updatedAt: toIso(doc.updatedAt),
   };

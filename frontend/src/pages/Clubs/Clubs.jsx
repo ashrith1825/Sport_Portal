@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   getClubs,
   searchClubs,
@@ -9,7 +9,9 @@ import {
   deleteClub,
 } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
-import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers, FiArrowRight } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers } from 'react-icons/fi';
+import SportIcon from '../../components/SportIcon';
+import { inferSportIcon, SPORT_ICON_OPTIONS } from '../../utils/sportIcons';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { countLabel } from '../../utils/countLabel';
@@ -17,14 +19,13 @@ import './Clubs.css';
 
 export default function Clubs() {
   const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', sportType: '', logoUrl: '' });
+  const [form, setForm] = useState({ name: '', description: '', sportType: '', sportIcon: '' });
 
   const loadClubs = async () => {
     try {
@@ -74,11 +75,12 @@ export default function Clubs() {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!user) return toast.error('Please log in to create a club');
+    if (!form.sportIcon) return toast.error('Choose an icon for your club');
     try {
       await createClub(form);
       toast.success('Club created');
       setShowModal(false);
-      setForm({ name: '', description: '', sportType: '', logoUrl: '' });
+      setForm({ name: '', description: '', sportType: '', sportIcon: '' });
       await loadClubs();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to create club');
@@ -158,7 +160,9 @@ export default function Clubs() {
                 <span className="sport-badge">{club.sportType}</span>
                 <span className="member-count-badge"><FiUsers /> {countLabel(club.memberCount, 'member')}</span>
               </div>
-              {club.logoUrl && <img className="club-card-logo" src={club.logoUrl} alt="" loading="lazy" />}
+              <div className="club-card-icon" aria-hidden="true">
+                <SportIcon name={club.sportIcon || inferSportIcon(club.sportType)} />
+              </div>
               <h3 className="card-title">{club.name}</h3>
               <p className="card-desc">{club.description || 'No description yet.'}</p>
               <div className="card-meta">
@@ -166,18 +170,8 @@ export default function Clubs() {
               </div>
               </div>
               <footer className="card-footer club-card-footer">
-                <span className="card-author">by {club.ownerUsername}</span>
+                <span className="card-author">by {club.ownerUsername || 'Unknown admin'}</span>
                 <div className="card-actions">
-                  <button
-                    className="btn-sm btn-secondary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/clubs/${cid}`);
-                    }}
-                  >
-                    Details <FiArrowRight />
-                  </button>
-
                   {user && club.ownerId !== user.id && (
                     memberIncludes
                       ? <button className="btn-sm btn-leave" onClick={(e) => { e.stopPropagation(); handleLeave(cid); }}>Leave</button>
@@ -210,13 +204,27 @@ export default function Clubs() {
                 <label>Sport Type *</label>
                 <input value={form.sportType} onChange={(e) => setForm({ ...form, sportType: e.target.value })} required placeholder="e.g. Football, Tennis" />
               </div>
+              <fieldset className="sport-icon-fieldset">
+                <legend>Choose a sport icon *</legend>
+                <div className="sport-icon-picker" role="radiogroup" aria-label="Choose a sport icon">
+                  {SPORT_ICON_OPTIONS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="radio"
+                      aria-checked={form.sportIcon === key}
+                      className={`sport-icon-option ${form.sportIcon === key ? 'selected' : ''}`}
+                      onClick={() => setForm({ ...form, sportIcon: key })}
+                    >
+                      <SportIcon name={key} />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
               <div className="form-group">
                 <label>Description</label>
                 <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label>Logo URL</label>
-                <input value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} placeholder="https://..." />
               </div>
               <button type="submit" className="btn-primary">Create Club</button>
             </form>

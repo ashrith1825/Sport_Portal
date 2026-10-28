@@ -3,6 +3,7 @@
 .club-detail-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(340px, .9fr); align-items: start; gap: var(--space-5); }
 .club-detail-main { display: grid; min-width: 0; gap: var(--space-6); }
 .club-detail-header-block { display: grid; gap: var(--space-3); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); }
+.club-detail-heading-row { display: flex; align-items: center; gap: 9px; }
 .club-detail-header-block h1 { margin: 0; color: var(--text-primary); font: 700 2.2rem/1.05 var(--font-display); }
 .club-detail-header-block p { max-width: 70ch; margin: 0; color: var(--text-secondary); }
 .club-detail-meta-row { display: flex; flex-wrap: wrap; gap: var(--space-4); color: var(--text-secondary); }
@@ -19,7 +20,6 @@
 .team-create-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .club-detail-panel { position: sticky; top: 78px; min-width: 0; min-height: 0; }
 .club-detail-panel .chat-sidebar { height: min(72dvh, 700px); min-height: 380px; }
-.club-detail-topbar { margin-bottom: 0; }
 
 @media (max-width: 960px) {
   .club-detail-layout { grid-template-columns: 1fr; }

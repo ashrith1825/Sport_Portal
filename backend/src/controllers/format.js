@@ -41,7 +41,7 @@ export function toClubDto(club) {
     name: doc.name,
     description: doc.description || '',
     sportType: doc.sportType,
-    logoUrl: doc.logoUrl || '',
+    sportIcon: doc.sportIcon || '',
     ownerId: toId(doc.owner?._id ?? doc.ownerId ?? doc.owner),
     ownerUsername: doc.owner?.username || doc.ownerUsername || '',
     memberCount: Number(doc.memberCount ?? doc.members?.length ?? 0),
@@ -63,6 +63,8 @@ export function toClubDto(club) {
 export function toEventDto(event) {
   if (!event) return null;
   const doc = event.toObject ? event.toObject() : event;
+  const organizer = doc.organizer && typeof doc.organizer === 'object' ? doc.organizer : null;
+  const organizerName = [organizer?.firstName, organizer?.lastName].filter(Boolean).join(' ').trim();
   return {
     id: toId(doc._id ?? doc.id),
     title: doc.title,
@@ -75,8 +77,9 @@ export function toEventDto(event) {
     endDate: toIso(doc.endDate),
     maxParticipants: doc.maxParticipants != null ? Number(doc.maxParticipants) : null,
     status: doc.status,
-    organizerId: toId(doc.organizer?._id ?? doc.organizerId ?? doc.organizer),
-    organizerUsername: doc.organizer?.username || doc.organizerUsername || '',
+    organizerId: toId(organizer?._id ?? doc.organizerId ?? doc.organizer),
+    organizerUsername: organizer?.username || doc.organizerUsername || '',
+    organizerDisplayName: organizerName || organizer?.username || doc.organizerDisplayName || doc.organizerUsername || 'Unknown organizer',
     participantCount: Number(doc.participantCount ?? doc.participants?.length ?? 0),
     participantIds: mapIds(doc.participants || []),
     createdAt: toIso(doc.createdAt),

@@ -249,7 +249,7 @@ export default function Events() {
               <span><FiUsers /> {event.participantCount}{event.maxParticipants ? `/${event.maxParticipants}` : ''}</span>
             </div>
             <div className="card-footer">
-              <span className="card-author">by {event.organizerUsername}</span>
+              <span className="card-author">by {event.organizerDisplayName || event.organizerUsername || 'Unknown organizer'}</span>
               <div className="card-actions">
                 {user && event.organizerId !== user.id && (
                   event.participantIds?.includes(user.id)

@@ -5,12 +5,12 @@ import { getEventDateError } from '../utils/eventValidation.js';
 
 async function enrichEvent(event) {
   if (!event) return null;
-  const populated = await event.populate('organizer', 'username');
+  const populated = await event.populate('organizer', 'username firstName lastName');
   return populated;
 }
 
 async function listEvents(filter = {}) {
-  const events = await Event.find(filter).sort({ eventDate: 1 }).populate('organizer', 'username');
+  const events = await Event.find(filter).sort({ eventDate: 1 }).populate('organizer', 'username firstName lastName');
   return Promise.all(events.map(async (event) => toEventDto(await enrichEvent(event))));
 }
 
@@ -32,7 +32,7 @@ export async function getUpcomingEvents(req, res, next) {
 
 export async function getEventById(req, res, next) {
   try {
-    const event = await Event.findById(req.params.id).populate('organizer', 'username');
+    const event = await Event.findById(req.params.id).populate('organizer', 'username firstName lastName');
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -92,7 +92,7 @@ export async function createEvent(req, res, next) {
 
     const event = await Event.create({ title, description, sportType, location, latitude, longitude, eventDate, endDate, maxParticipants, status, organizer: req.user.id, participants: [req.user.id] });
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedEvents: event._id } });
-    return res.status(201).json(toEventDto(await enrichEvent(await Event.findById(event._id).populate('organizer', 'username'))));
+    return res.status(201).json(toEventDto(await enrichEvent(await Event.findById(event._id).populate('organizer', 'username firstName lastName'))));
   } catch (error) {
     return next(error);
   }
@@ -129,7 +129,7 @@ export async function updateEvent(req, res, next) {
     }
 
     await Event.findByIdAndUpdate(req.params.id, updates);
-    return res.json(toEventDto(await enrichEvent(await Event.findById(req.params.id).populate('organizer', 'username'))));
+    return res.json(toEventDto(await enrichEvent(await Event.findById(req.params.id).populate('organizer', 'username firstName lastName'))));
   } catch (error) {
     return next(error);
   }

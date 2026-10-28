@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import {
   getClub,
@@ -11,13 +11,14 @@ import {
 import ClubChat from '../../components/ClubChat/ClubChat';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { FiArrowLeft, FiPlus, FiUsers, FiLayers, FiUserMinus } from 'react-icons/fi';
+import { FiPlus, FiUsers, FiLayers, FiUserMinus } from 'react-icons/fi';
+import SportIcon from '../../components/SportIcon';
+import { inferSportIcon } from '../../utils/sportIcons';
 import { countLabel } from '../../utils/countLabel';
 import './ClubDetail.css';
 
 export default function ClubDetail() {
   const { clubId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [club, setClub] = useState(null);
   const [teams, setTeams] = useState([]);
@@ -99,16 +100,13 @@ export default function ClubDetail() {
 
   return (
     <div className="page club-detail-page">
-      <div className="club-detail-topbar">
-        <button className="btn-secondary" onClick={() => navigate('/clubs')}>
-          <FiArrowLeft /> Back to clubs
-        </button>
-      </div>
-
       <div className="club-detail-layout">
         <section className="club-detail-main">
           <div className="club-detail-header-block">
             <div className="club-detail-heading-row">
+              <span className="club-detail-sport-icon" aria-hidden="true">
+                <SportIcon name={club.sportIcon || inferSportIcon(club.sportType)} />
+              </span>
               <span className="sport-badge">{club.sportType}</span>
             </div>
             <h1>{club.name}</h1>

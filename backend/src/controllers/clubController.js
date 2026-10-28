@@ -3,6 +3,11 @@ import User from '../models/User.js';
 import Team from '../models/Team.js';
 import { toClubDto } from './format.js';
 
+const SUPPORTED_SPORT_ICONS = new Set([
+  'soccer', 'basketball', 'volleyball', 'tennis', 'badminton', 'baseball', 'cricket', 'rugby',
+  'golf', 'swimming', 'running', 'cycling', 'hockey', 'boxing', 'american-football', 'skiing',
+]);
+
 async function removeMemberFromClub(club, userId) {
   const teams = await Team.find({ club: club._id }).select('_id').lean();
   const teamIds = teams.map((team) => team._id);
@@ -89,9 +94,12 @@ export async function getMyClubs(req, res, next) {
 
 export async function createClub(req, res, next) {
   try {
-    const { name, description = null, sportType, logoUrl = null } = req.body;
+    const { name, description = null, sportType, sportIcon = 'soccer' } = req.body;
     if (!name || !sportType) {
       return res.status(400).json({ message: 'Name and sportType are required' });
+    }
+    if (!SUPPORTED_SPORT_ICONS.has(sportIcon)) {
+      return res.status(400).json({ message: 'Choose a supported sport icon' });
     }
 
     const existingOwnerClub = await Club.findOne({ owner: req.user.id }).lean();
@@ -99,7 +107,7 @@ export async function createClub(req, res, next) {
       return res.status(400).json({ message: 'You already own a club in this phase. One club admin slot is allowed.' });
     }
 
-    const club = await Club.create({ name, description, sportType, logoUrl, owner: req.user.id, members: [req.user.id] });
+    const club = await Club.create({ name, description, sportType, sportIcon, owner: req.user.id, members: [req.user.id] });
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedClubs: club._id } });
     const populated = await Club.findById(club._id).populate('owner', 'username');
     return res.status(201).json(toClubDto(await enrichClub(populated)));
@@ -120,8 +128,12 @@ export async function updateClub(req, res, next) {
     }
 
     const updates = {};
-    for (const key of ['name', 'description', 'sportType', 'logoUrl']) {
+    for (const key of ['name', 'description', 'sportType', 'sportIcon']) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    if (updates.sportIcon !== undefined && !SUPPORTED_SPORT_ICONS.has(updates.sportIcon)) {
+      return res.status(400).json({ message: 'Choose a supported sport icon' });
     }
 
     if (Object.keys(updates).length === 0) {

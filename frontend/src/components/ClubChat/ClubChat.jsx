@@ -85,7 +85,6 @@ export default function ClubChat({ clubId, open }) {
       participant={{
         id: clubId,
         name: club?.name || 'club chat',
-        avatarUrl: club?.logoUrl,
         memberCount: club?.memberCount || club?.members?.length,
       }}
       messages={visibleMessages}

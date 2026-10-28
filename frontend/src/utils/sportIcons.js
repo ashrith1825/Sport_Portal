@@ -14,6 +14,7 @@ import {
   GiSoccerBall,
   GiSwimfins,
   GiTennisBall,
+  GiTrophy,
   GiVolleyballBall,
 } from 'react-icons/gi';
 
@@ -34,11 +35,13 @@ export const SPORT_ICON_OPTIONS = [
   { key: 'boxing', label: 'Boxing', Icon: GiBoxingGlove },
   { key: 'american-football', label: 'American football', Icon: GiAmericanFootballBall },
   { key: 'skiing', label: 'Skiing', Icon: GiSkis },
+  { key: 'other', label: 'Other', Icon: GiTrophy },
 ];
 
 export function inferSportIcon(sportType = '') {
   const normalized = sportType.toLowerCase();
-  if (normalized.includes('badminton')) return 'badminton';
   if (normalized.includes('american football')) return 'american-football';
+  if (normalized.includes('football') || normalized.includes('soccer') || normalized.includes('futsal')) return 'soccer';
+  if (normalized.includes('badminton')) return 'badminton';
   return SPORT_ICON_OPTIONS.find((option) => normalized.includes(option.label.toLowerCase()))?.key || 'soccer';
 }

@@ -5,7 +5,7 @@ import { toClubDto } from './format.js';
 
 const SUPPORTED_SPORT_ICONS = new Set([
   'soccer', 'basketball', 'volleyball', 'tennis', 'badminton', 'baseball', 'cricket', 'rugby',
-  'golf', 'swimming', 'running', 'cycling', 'hockey', 'boxing', 'american-football', 'skiing',
+  'golf', 'swimming', 'running', 'cycling', 'hockey', 'boxing', 'american-football', 'skiing', 'other',
 ]);
 
 async function removeMemberFromClub(club, userId) {

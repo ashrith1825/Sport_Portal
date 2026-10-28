@@ -1,4 +1,3 @@
-import dns from 'node:dns';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import User from '../src/models/User.js';
@@ -6,7 +5,6 @@ import Club from '../src/models/Club.js';
 import Team from '../src/models/Team.js';
 import ClubMessage from '../src/models/ClubMessage.js';
 
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 dotenv.config();
 
 const uri = process.env.MONGODB_URI;

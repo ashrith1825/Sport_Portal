@@ -1,11 +1,9 @@
-import dns from 'node:dns';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import User from '../src/models/User.js';
 import Club from '../src/models/Club.js';
 import Team from '../src/models/Team.js';
 
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 dotenv.config();
 
 const dbName = process.env.MONGODB_DB || 'sport_portal';

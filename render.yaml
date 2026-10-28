@@ -12,10 +12,10 @@ services:
     startCommand: "npm start"
     envVars:
       - key: MONGODB_URI
-        value: ""
+        sync: false
       - key: MONGODB_DB
-        value: ""
+        value: sport_portal
       - key: JWT_SECRET
-        value: ""
+        sync: false
       - key: ALLOWED_ORIGINS
         value: ""

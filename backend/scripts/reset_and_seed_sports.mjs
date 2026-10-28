@@ -1,14 +1,11 @@
-import dns from 'node:dns';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from '../src/models/User.js';
 import Club from '../src/models/Club.js';
 import Team from '../src/models/Team.js';
-import ClubRequest from '../src/models/ClubRequest.js';
 import ClubMessage from '../src/models/ClubMessage.js';
 
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 dotenv.config();
 
 const uri = process.env.MONGODB_URI;
@@ -112,7 +109,6 @@ try {
   await Promise.all([
     Club.deleteMany({}),
     Team.deleteMany({}),
-    ClubRequest.deleteMany({}),
     ClubMessage.deleteMany({}),
     User.deleteMany({}),
   ]);

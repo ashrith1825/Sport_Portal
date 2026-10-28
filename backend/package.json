@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "seed:test": "node scripts/reset_and_seed_sports.mjs",
     "validate:test": "node scripts/validate_seed.mjs",
-    "test:authorization": "node scripts/test_team_authorization.mjs"
+    "test:authorization": "node scripts/test_team_authorization.mjs",
+    "test:event-dates": "node scripts/test_event_validation.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -1,0 +1,46 @@
+@import '../../styles/shared.css';
+
+.journal-card {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.journal-card:hover,
+.journal-card:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.journal-card-hit-area {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.journal-card-hit-area:focus-visible { outline-offset: 3px; }
+.journal-card-content { flex: 1; pointer-events: none; }
+.journal-card .card-title { font-size: 1.28rem; }
+.journal-card .card-desc { -webkit-line-clamp: 4; }
+.journal-card .card-image { width: 100%; aspect-ratio: 16 / 9; margin: 0 0 var(--space-3); border-radius: var(--radius-sm); object-fit: cover; }
+.journal-card-footer { position: relative; z-index: 2; pointer-events: none; }
+.journal-author { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.journal-author-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: var(--accent-500); color: #fff; object-fit: cover; }
+.journal-author-initials { font-size: .94rem; font-weight: 700; }
+.journal-author > span:last-child { display: grid; min-width: 0; line-height: 1.25; }
+.journal-author strong { overflow: hidden; color: var(--text-primary); font-size: .94rem; text-overflow: ellipsis; white-space: nowrap; }
+.journal-author small { color: var(--text-muted); font-size: .82rem; }
+.journal-card-action { position: relative; z-index: 3; pointer-events: auto; }
+
+.journal-detail { max-width: 920px; margin-inline: auto; }
+.journal-detail .page-header { align-items: flex-start; }
+.journal-hero { width: 100%; max-height: 520px; aspect-ratio: 16 / 9; border-radius: var(--radius-md); object-fit: cover; }
+.journal-detail-content { color: var(--text-primary); font-size: 1.08rem; line-height: 1.8; white-space: pre-wrap; }
+
+@media (max-width: 640px) {
+  .journal-card-footer { align-items: center; flex-direction: row; }
+  .journal-detail .page-header { align-items: flex-start; }
+}

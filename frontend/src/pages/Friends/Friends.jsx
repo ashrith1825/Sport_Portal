@@ -14,6 +14,7 @@ export default function Friends() {
   const [pending, setPending] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState('friends');
   const [search, setSearch] = useState('');
   const [friendCode, setFriendCode] = useState('');
@@ -31,7 +32,9 @@ export default function Friends() {
       setFriends(friendsRes.data.filter(f => f.status === 'ACCEPTED'));
       setPending(pendingRes.data);
       setUsers(usersRes.data.filter(u => u.id !== user.id));
+      setLoadError('');
     } catch {
+      setLoadError('Friend data could not be loaded. Refresh to try again.');
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -44,7 +47,7 @@ export default function Friends() {
     try {
       await sendFriendRequest(friendId);
       toast.success('Friend request sent!');
-      fetchData();
+      await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to send request');
     }
@@ -58,7 +61,7 @@ export default function Friends() {
       await sendFriendRequestByCode(friendCode.trim().toUpperCase());
       toast.success('Friend request sent!');
       setFriendCode('');
-      fetchData();
+      await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid friend code or already friends');
     } finally {
@@ -70,7 +73,7 @@ export default function Friends() {
     try {
       await acceptFriendRequest(id);
       toast.success('Friend request accepted!');
-      fetchData();
+      await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to accept');
     }
@@ -80,7 +83,7 @@ export default function Friends() {
     try {
       await rejectFriendRequest(id);
       toast.success('Request rejected');
-      fetchData();
+      await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to reject');
     }
@@ -89,9 +92,12 @@ export default function Friends() {
   const handleRemove = async (id) => {
     if (!confirm('Remove this friend?')) return;
     try {
+      const removedFriend = friends.find((friend) => friend.id === id);
+      const otherId = removedFriend?.friendId === user.id ? removedFriend.userId : removedFriend?.friendId;
       await removeFriend(id);
+      if (String(chatFriendId) === String(otherId)) setChatFriendId(null);
       toast.success('Friend removed');
-      fetchData();
+      await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to remove');
     }
@@ -120,6 +126,7 @@ export default function Friends() {
           <p className="page-subtitle">Connect with other sports enthusiasts</p>
         </div>
       </div>
+      {loadError && <p className="page-error" role="alert">{loadError}</p>}
 
       {/* Friend Code Section */}
       <div className="friend-code-section">
@@ -162,28 +169,28 @@ export default function Friends() {
       </div>
 
       {/* Tabs */}
-      <div className="tabs">
-        <button className={`tab ${tab === 'friends' ? 'active' : ''}`} onClick={() => setTab('friends')}>
+      <div className="tabs" role="tablist" aria-label="Friend views">
+        <button className={`tab ${tab === 'friends' ? 'active' : ''}`} role="tab" aria-selected={tab === 'friends'} onClick={() => setTab('friends')}>
           <FiUsers />
           <span>Friends</span>
           <span className="tab-count">{friends.length}</span>
         </button>
-        <button className={`tab ${tab === 'pending' ? 'active' : ''}`} onClick={() => setTab('pending')}>
+        <button className={`tab ${tab === 'pending' ? 'active' : ''}`} role="tab" aria-selected={tab === 'pending'} onClick={() => setTab('pending')}>
           <FiClock />
           <span>Pending</span>
           {pending.length > 0 && <span className="tab-count pending">{pending.length}</span>}
         </button>
-        <button className={`tab ${tab === 'find' ? 'active' : ''}`} onClick={() => setTab('find')}>
+        <button className={`tab ${tab === 'find' ? 'active' : ''}`} role="tab" aria-selected={tab === 'find'} onClick={() => setTab('find')}>
           <FiSearch />
           <span>Find People</span>
         </button>
       </div>
 
       {tab === 'friends' && (
-        <div className="user-list">
+        <div className="user-list" role="tabpanel">
           {friends.map((f) => (
             <div key={f.id} className="user-card">
-              <div className="user-avatar">{(f.friendUsername || f.username || '?')[0].toUpperCase()}</div>
+              <div className="user-avatar">{(f.friendId === user.id ? f.username : f.friendUsername || '?')[0].toUpperCase()}</div>
               <div className="user-info">
                 <span className="user-name">{f.friendId === user.id ? f.username : f.friendUsername}</span>
                 <span className="user-status accepted">
@@ -205,7 +212,7 @@ export default function Friends() {
               </div>
             </div>
           ))}
-          {friends.length === 0 && (
+          {friends.length === 0 && !loadError && (
             <div className="empty-state">
               <FiUsers />
               <span>No friends yet</span>
@@ -216,10 +223,10 @@ export default function Friends() {
       )}
 
       {tab === 'pending' && (
-        <div className="user-list">
+        <div className="user-list" role="tabpanel">
           {pending.map((f) => (
             <div key={f.id} className="user-card">
-              <div className="user-avatar">{(f.userId === user.id ? f.friendUsername : f.username)[0].toUpperCase()}</div>
+              <div className="user-avatar">{((f.userId === user.id ? f.friendUsername : f.username) || '?')[0].toUpperCase()}</div>
               <div className="user-info">
                 <span className="user-name">{f.userId === user.id ? f.friendUsername : f.username}</span>
                 <span className="user-status pending">
@@ -238,7 +245,7 @@ export default function Friends() {
               )}
             </div>
           ))}
-          {pending.length === 0 && (
+          {pending.length === 0 && !loadError && (
             <div className="empty-state">
               <FiClock />
               <span>No pending requests</span>
@@ -248,34 +255,40 @@ export default function Friends() {
       )}
 
       {tab === 'find' && (
-        <>
-          <div className="search-bar">
+        <div role="tabpanel">
+          <div className="search-bar" role="search">
             <FiSearch />
             <input type="text" placeholder="Search by username or name..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="user-list">
             {filteredUsers.map((u) => (
-              <div key={u.id} className="user-card">
-                <div className="user-avatar">{u.username[0].toUpperCase()}</div>
+              (() => {
+                const request = pending.find((item) => item.userId === u.id || item.friendId === u.id);
+                const isFriend = friends.some((item) => item.userId === u.id || item.friendId === u.id);
+                const incoming = request?.friendId === user.id;
+                const actionLabel = isFriend ? 'Friends' : incoming ? 'Accept' : request ? 'Request sent' : 'Add';
+                return <div key={u.id} className="user-card">
+                <div className="user-avatar">{(u.username || '?')[0].toUpperCase()}</div>
                 <div className="user-info">
                   <span className="user-name">{u.username}</span>
                   <span className="user-meta">{u.firstName} {u.lastName}</span>
                 </div>
-                <button className="btn-sm btn-join" onClick={() => handleSendRequest(u.id)}>
-                  <FiUserPlus /> Add
+                <button className="btn-sm btn-join" disabled={isFriend || (Boolean(request) && !incoming)} onClick={() => incoming ? handleAccept(request.id) : handleSendRequest(u.id)}>
+                  {incoming ? <FiCheck /> : <FiUserPlus />} {actionLabel}
                 </button>
-              </div>
+              </div>;
+              })()
             ))}
-            {filteredUsers.length === 0 && (
+            {filteredUsers.length === 0 && !loadError && (
               <div className="empty-state">
                 <FiSearch />
                 <span>No users found</span>
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
-      <FriendChat friendId={chatFriendId} friendName={chatFriendName} open={Boolean(chatFriendId)} />
+      {chatFriendId && <FriendChat friendId={chatFriendId} friendName={chatFriendName} open onClose={() => setChatFriendId(null)} />}
     </div>
   );
 }

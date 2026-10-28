@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import { register } from '../../api/services';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import ThemeToggle from '../../components/ThemeToggle';
 import './Auth.css';
 
 export default function Register() {
@@ -14,6 +16,7 @@ export default function Register() {
     lastName: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
@@ -34,6 +37,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
+      <div className="auth-theme-toggle"><ThemeToggle /></div>
       <div className="auth-promo">
         <span className="auth-eyebrow">Create your account</span>
         <h1>Launch a profile that feels ready for a real product demo.</h1>
@@ -42,24 +46,6 @@ export default function Register() {
           publishing sports journals with a clean, modern interface.
         </p>
 
-        <div className="auth-metrics">
-          <article>
-            <strong>Fast</strong>
-            <span>Simple onboarding</span>
-          </article>
-          <article>
-            <strong>Secure</strong>
-            <span>JWT authentication</span>
-          </article>
-          <article>
-            <strong>Social</strong>
-            <span>Friends and teams</span>
-          </article>
-          <article>
-            <strong>Polished</strong>
-            <span>Interview-ready UI</span>
-          </article>
-        </div>
       </div>
 
       <div className="auth-card">
@@ -115,16 +101,22 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label>Password *</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Min. 6 characters"
-              required
-              minLength={6}
-              maxLength={40}
-            />
+            <label htmlFor="register-password">Password *</label>
+            <div className="password-field">
+              <input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Min. 6 characters"
+                required
+                minLength={6}
+                maxLength={40}
+              />
+              <button type="button" className="password-toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>

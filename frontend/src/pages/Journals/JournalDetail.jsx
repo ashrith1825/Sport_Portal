@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getJournal } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
-import '../Events/Events.css';
+import './Journals.css';
 
 export default function JournalDetail() {
   const { id } = useParams();
@@ -35,12 +35,12 @@ export default function JournalDetail() {
       <div className="page-header">
         <div>
           <h1>{journal.title}</h1>
-          <p className="page-subtitle">By {journal.authorUsername} • {new Date(journal.createdAt).toLocaleDateString()}</p>
+          <p className="page-subtitle">By {journal.authorDisplayName || journal.authorUsername || 'Unknown author'} • {new Date(journal.createdAt).toLocaleDateString()}</p>
         </div>
         <Link to="/journals" className="btn-sm">Back</Link>
       </div>
       {journal.imageUrl && <img src={journal.imageUrl} alt="" className="journal-hero" />}
-      <div className="card-desc" style={{ whiteSpace: 'pre-wrap' }}>{journal.content}</div>
+      <article className="journal-detail-content">{journal.content}</article>
     </div>
   );
 }

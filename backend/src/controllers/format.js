@@ -123,14 +123,18 @@ export function toFriendshipDto(friendship) {
 export function toJournalDto(journal) {
   if (!journal) return null;
   const doc = journal.toObject ? journal.toObject() : journal;
+  const author = doc.author && typeof doc.author === 'object' ? doc.author : null;
+  const authorName = [author?.firstName, author?.lastName].filter(Boolean).join(' ').trim();
   return {
     id: toId(doc._id ?? doc.id),
     title: doc.title,
     content: doc.content,
     sportType: doc.sportType,
     imageUrl: doc.imageUrl || '',
-    authorId: toId(doc.author?._id ?? doc.authorId ?? doc.author),
-    authorUsername: doc.author?.username || doc.authorUsername || '',
+    authorId: toId(author?._id ?? doc.authorId ?? doc.author),
+    authorUsername: author?.username || doc.authorUsername || '',
+    authorDisplayName: authorName || author?.username || doc.authorUsername || 'Unknown author',
+    authorAvatarUrl: author?.avatarUrl || '',
     createdAt: toIso(doc.createdAt),
     updatedAt: toIso(doc.updatedAt),
   };

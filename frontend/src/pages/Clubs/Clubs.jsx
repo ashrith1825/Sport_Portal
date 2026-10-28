@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   getClubs,
   searchClubs,
@@ -13,13 +13,15 @@ import { FiPlus, FiSearch, FiUsers, FiTrash2, FiX, FiLayers, FiArrowRight } from
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { countLabel } from '../../utils/countLabel';
-import '../Events/Events.css';
+import './Clubs.css';
 
 export default function Clubs() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', description: '', sportType: '', logoUrl: '' });
@@ -28,7 +30,9 @@ export default function Clubs() {
     try {
       const res = await getClubs();
       setClubs(res.data || []);
+      setLoadError('');
     } catch {
+      setLoadError('Clubs could not be loaded. Refresh to try again.');
       toast.error('Failed to load clubs');
     } finally {
       setLoading(false);
@@ -39,13 +43,28 @@ export default function Clubs() {
     loadClubs();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('create') === 'true' && user) {
+      setShowModal(true);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    } else if (searchParams.has('create') && !authLoading) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [authLoading, searchParams, setSearchParams, user]);
+
   const handleSearch = async (e) => {
     e?.preventDefault();
     setLoading(true);
     try {
       const res = search ? await searchClubs(search) : await getClubs();
       setClubs(res.data || []);
+      setLoadError('');
     } catch {
+      setLoadError('Search failed. Check your connection and try again.');
       toast.error('Search failed');
     } finally {
       setLoading(false);
@@ -122,30 +141,31 @@ export default function Clubs() {
         <button type="submit" className="btn-search">Search</button>
       </form>
 
+      {loadError && <p className="page-error" role="alert">{loadError}</p>}
+
       <div className="card-grid">
-        {clubs.length === 0 && <div className="empty-state">No clubs found. Create one!</div>}
+        {clubs.length === 0 && !loadError && <div className="empty-state">No clubs found. Create one!</div>}
         {clubs.map((club) => {
           const cid = club.id || club._id;
           const memberIds = Array.isArray(club.memberIds) ? club.memberIds : [];
           const memberIncludes = user ? memberIds.includes(user.id) || memberIds.includes(user._id) : false;
 
           return (
-            <div
-              key={cid}
-              className="card"
-              onClick={() => navigate(`/clubs/${cid}`)}
-              style={{ cursor: 'pointer' }}
-            >
+            <article key={cid} className="card club-card">
+              <Link className="club-card-hit-area" to={`/clubs/${cid}`} aria-label={`Open ${club.name}`} />
+              <div className="club-card-content">
               <div className="card-top">
                 <span className="sport-badge">{club.sportType}</span>
                 <span className="member-count-badge"><FiUsers /> {countLabel(club.memberCount, 'member')}</span>
               </div>
+              {club.logoUrl && <img className="club-card-logo" src={club.logoUrl} alt="" loading="lazy" />}
               <h3 className="card-title">{club.name}</h3>
               <p className="card-desc">{club.description || 'No description yet.'}</p>
               <div className="card-meta">
                 <span><FiLayers /> {countLabel(club.teamCount, 'team')}</span>
               </div>
-              <div className="card-footer">
+              </div>
+              <footer className="card-footer club-card-footer">
                 <span className="card-author">by {club.ownerUsername}</span>
                 <div className="card-actions">
                   <button
@@ -168,8 +188,8 @@ export default function Clubs() {
                     <button className="btn-sm btn-danger" onClick={(e) => { e.stopPropagation(); handleDelete(cid); }}><FiTrash2 /></button>
                   )}
                 </div>
-              </div>
-            </div>
+              </footer>
+            </article>
           );
         })}
       </div>

@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import { toJournalDto } from './format.js';
 
 async function listJournals(filter = {}) {
-  const journals = await Journal.find(filter).sort({ createdAt: -1 }).populate('author', 'username');
+  const journals = await Journal.find(filter).sort({ createdAt: -1 }).populate('author', 'username firstName lastName avatarUrl');
   return journals.map(toJournalDto);
 }
 
@@ -17,7 +17,7 @@ export async function getJournals(req, res, next) {
 
 export async function getJournalById(req, res, next) {
   try {
-    const journal = await Journal.findById(req.params.id).populate('author', 'username');
+    const journal = await Journal.findById(req.params.id).populate('author', 'username firstName lastName avatarUrl');
     if (!journal) {
       return res.status(404).json({ message: 'Journal not found' });
     }
@@ -61,7 +61,7 @@ export async function createJournal(req, res, next) {
     }
 
     const journal = await Journal.create({ title, content, sportType, imageUrl, author: req.user.id });
-    const populated = await Journal.findById(journal._id).populate('author', 'username');
+    const populated = await Journal.findById(journal._id).populate('author', 'username firstName lastName avatarUrl');
     return res.status(201).json(toJournalDto(populated));
   } catch (error) {
     return next(error);
@@ -89,7 +89,7 @@ export async function updateJournal(req, res, next) {
     }
 
     await Journal.findByIdAndUpdate(req.params.id, updates);
-    const populated = await Journal.findById(req.params.id).populate('author', 'username');
+    const populated = await Journal.findById(req.params.id).populate('author', 'username firstName lastName avatarUrl');
     return res.json(toJournalDto(populated));
   } catch (error) {
     return next(error);

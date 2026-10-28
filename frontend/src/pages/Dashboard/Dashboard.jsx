@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
 import { getUpcomingEvents, getMyClubs, getMyJournals, getFriends } from '../../api/services';
@@ -10,14 +10,13 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ events: [], clubs: [], journals: [], friends: [] });
   const [loading, setLoading] = useState(true);
+  const [dataUnavailable, setDataUnavailable] = useState(false);
 
-  useEffect(() => {
-    Promise.allSettled([
-      getUpcomingEvents(),
-      getMyClubs(),
-      getMyJournals(),
-      getFriends(),
-    ]).then(([events, clubs, journals, friends]) => {
+  const loadDashboard = useEffectEvent(async () => {
+    const [events, clubs, journals, friends] = await Promise.allSettled([
+      getUpcomingEvents(), getMyClubs(), getMyJournals(), getFriends(),
+    ]);
+      setDataUnavailable([events, clubs, journals, friends].some((result) => result.status === 'rejected'));
       setStats({
         events: events.status === 'fulfilled' ? events.value.data : [],
         clubs: clubs.status === 'fulfilled' ? clubs.value.data : [],
@@ -25,16 +24,22 @@ export default function Dashboard() {
         friends: friends.status === 'fulfilled' ? friends.value.data.filter(f => f.status === 'ACCEPTED') : [],
       });
       setLoading(false);
-    });
+  }, []);
+
+  useEffect(() => {
+    loadDashboard();
+    const handleFocus = () => loadDashboard();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   if (loading) return <LoadingSpinner />;
 
   const cards = [
-    { title: 'Upcoming Events', count: stats.events.length, icon: <FiCalendar />, to: '/events', color: 'var(--primary-500)', items: stats.events.slice(0, 3) },
-    { title: 'My Clubs', count: stats.clubs.length, icon: <FiShield />, to: '/clubs', color: 'var(--accent-500)', items: stats.clubs.slice(0, 3) },
-    { title: 'My Journals', count: stats.journals.length, icon: <FiBookOpen />, to: '/journals', color: 'var(--gray-600)', items: stats.journals.slice(0, 3) },
-    { title: 'Friends', count: stats.friends.length, icon: <FiUsers />, to: '/friends', color: 'var(--primary-400)', items: stats.friends.slice(0, 3) },
+    { title: 'Upcoming Events', count: stats.events.length, icon: <FiCalendar />, to: '/events', items: stats.events.slice(0, 3) },
+    { title: 'My Clubs', count: stats.clubs.length, icon: <FiShield />, to: '/clubs', items: stats.clubs.slice(0, 3) },
+    { title: 'My Journals', count: stats.journals.length, icon: <FiBookOpen />, to: '/journals', items: stats.journals.slice(0, 3) },
+    { title: 'Friends', count: stats.friends.length, icon: <FiUsers />, to: '/friends', items: stats.friends.slice(0, 3) },
   ];
 
   return (
@@ -43,10 +48,11 @@ export default function Dashboard() {
         <h1>Welcome back, <span className="highlight">{user?.firstName || user?.username}</span>!</h1>
         <p>Here's what's happening in your sports world</p>
       </div>
+      {dataUnavailable && <p className="page-error" role="status">Some activity data could not be loaded. Refresh to try again.</p>}
 
       <div className="stats-grid">
         {cards.map((card) => (
-          <div key={card.title} className="stat-card" style={{ '--accent': card.color }}>
+          <div key={card.title} className="stat-card">
             <div className="stat-header">
               <div className="stat-icon">{card.icon}</div>
               <span className="stat-count">{card.count}</span>

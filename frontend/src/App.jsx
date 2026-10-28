@@ -16,6 +16,7 @@ import JournalDetail from './pages/Journals/JournalDetail';
 import Friends from './pages/Friends/Friends';
 import Profile from './pages/Profile/Profile';
 import TeamDetail from './pages/Teams/TeamDetail';
+import Teams from './pages/Teams/Teams';
 
 export default function App() {
   return (
@@ -26,9 +27,9 @@ export default function App() {
           position="top-right"
           toastOptions={{
             style: {
-              background: '#1e1e30',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--surface-raised)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-default)',
             },
           }}
         />
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="events" element={<Events />} />
             <Route path="clubs" element={<Clubs />} />
             <Route path="clubs/:clubId" element={<ClubDetail />} />
+            <Route path="teams" element={<Teams />} />
             <Route path="journals" element={<Journals />} />
             <Route path="journals/:id" element={<JournalDetail />} />
           </Route>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getEvents, searchEvents, createEvent, joinEvent, leaveEvent, deleteEvent } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiSearch, FiMapPin, FiClock, FiUsers, FiTrash2, FiX, FiList, FiMap } from 'react-icons/fi';
@@ -7,6 +8,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { getEndDateTimeMin, getEventDateError, localDateTimeToIso } from '../../utils/eventDateTime';
 import './Events.css';
 
 // Fix default marker icon issue with Leaflet + Vite
@@ -18,19 +20,24 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function Events() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
   const [showModal, setShowModal] = useState(false);
+  const [dateError, setDateError] = useState('');
   const [form, setForm] = useState({ title: '', description: '', sportType: '', location: '', eventDate: '', endDate: '', maxParticipants: '', latitude: '', longitude: '' });
 
   const fetchEvents = useCallback(async () => {
     try {
       const res = search ? await searchEvents(search) : await getEvents();
       setEvents(res.data);
+      setLoadError('');
     } catch {
+      setLoadError('Events could not be loaded. Refresh to try again.');
       toast.error('Failed to load events');
     } finally {
       setLoading(false);
@@ -38,6 +45,19 @@ export default function Events() {
   }, [search]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true' && user) {
+      setShowModal(true);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    } else if (searchParams.has('create') && !authLoading) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [authLoading, searchParams, setSearchParams, user]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -51,8 +71,17 @@ export default function Events() {
       toast.error('Please log in to create an event');
       return;
     }
+    const validationError = getEventDateError(form.eventDate, form.endDate);
+    if (validationError) {
+      setDateError(validationError);
+      return;
+    }
     try {
       const payload = { ...form };
+      payload.eventDate = localDateTimeToIso(form.eventDate);
+      if (form.endDate) payload.endDate = localDateTimeToIso(form.endDate);
+      else delete payload.endDate;
+      payload.timezoneOffsetMinutes = new Date(form.eventDate).getTimezoneOffset();
       if (payload.maxParticipants) payload.maxParticipants = parseInt(payload.maxParticipants);
       else delete payload.maxParticipants;
       if (payload.latitude) payload.latitude = parseFloat(payload.latitude);
@@ -62,10 +91,13 @@ export default function Events() {
       await createEvent(payload);
       toast.success('Event created!');
       setShowModal(false);
+      setDateError('');
       setForm({ title: '', description: '', sportType: '', location: '', eventDate: '', endDate: '', maxParticipants: '', latitude: '', longitude: '' });
       setLoading(true);
       fetchEvents();
     } catch (err) {
+      const message = err.response?.data?.message || '';
+      if (/date|time|today|start|end/i.test(message)) setDateError(message);
       toast.error(err.response?.data?.message || 'Failed to create event');
     }
   };
@@ -168,12 +200,14 @@ export default function Events() {
         <button type="submit" className="btn-search">Search</button>
       </form>
 
+      {loadError && <p className="page-error" role="alert">{loadError}</p>}
+
       {viewMode === 'map' ? (
         <div className="map-container">
           <MapContainer
             center={[40.7580, -73.9855]}
             zoom={12}
-            style={{ height: '500px', width: '100%', borderRadius: 'var(--radius-lg)' }}
+            style={{ height: '100%', width: '100%' }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -229,7 +263,7 @@ export default function Events() {
             </div>
           </div>
         ))}
-        {events.length === 0 && <div className="empty-state">No events found. Create one!</div>}
+        {events.length === 0 && !loadError && <div className="empty-state">No events found. Create one!</div>}
       </div>
       )}
 
@@ -270,13 +304,34 @@ export default function Events() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Start Date *</label>
-                  <input type="datetime-local" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} required />
+                  <input
+                    type="datetime-local"
+                    value={form.eventDate}
+                    onChange={(e) => {
+                      setForm({ ...form, eventDate: e.target.value });
+                      setDateError(form.endDate ? getEventDateError(e.target.value, form.endDate) : '');
+                    }}
+                    required
+                    aria-invalid={Boolean(dateError)}
+                    aria-describedby={dateError ? 'event-date-error' : undefined}
+                  />
                 </div>
                 <div className="form-group">
                   <label>End Date</label>
-                  <input type="datetime-local" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+                  <input
+                    type="datetime-local"
+                    min={getEndDateTimeMin(form.eventDate)}
+                    value={form.endDate}
+                    onChange={(e) => {
+                      setForm({ ...form, endDate: e.target.value });
+                      setDateError(getEventDateError(form.eventDate, e.target.value));
+                    }}
+                    aria-invalid={Boolean(dateError)}
+                    aria-describedby={dateError ? 'event-date-error' : undefined}
+                  />
                 </div>
               </div>
+              {dateError && <p id="event-date-error" className="form-error" role="alert">{dateError}</p>}
               <div className="form-group">
                 <label>Max Participants</label>
                 <input type="number" min="1" value={form.maxParticipants} onChange={(e) => setForm({ ...form, maxParticipants: e.target.value })} />

@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react';
 import { getJournals, searchJournals, createJournal, deleteJournal } from '../../api/services';
 import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextObject';
-import { FiPlus, FiSearch, FiTrash2, FiX, FiEdit3, FiClock } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiTrash2, FiX, FiClock } from 'react-icons/fi';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
-import '../Events/Events.css';
+import './Journals.css';
+
+function authorInitials(name = '') {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || '?';
+}
 
 export default function Journals() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', content: '', sportType: '', imageUrl: '' });
@@ -20,7 +27,9 @@ export default function Journals() {
       try {
         const res = await getJournals();
         setJournals(res.data || []);
+        setLoadError('');
       } catch {
+        setLoadError('Journals could not be loaded. Refresh to try again.');
         toast.error('Failed to load journals');
       } finally {
         setLoading(false);
@@ -28,13 +37,28 @@ export default function Journals() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('create') === 'true' && user) {
+      setShowModal(true);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    } else if (searchParams.has('create') && !authLoading) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('create');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [authLoading, searchParams, setSearchParams, user]);
+
   const handleSearch = async (e) => {
     e?.preventDefault();
     setLoading(true);
     try {
       const res = search ? await searchJournals(search) : await getJournals();
       setJournals(res.data || []);
+      setLoadError('');
     } catch {
+      setLoadError('Search failed. Check your connection and try again.');
       toast.error('Search failed');
     } finally {
       setLoading(false);
@@ -96,29 +120,39 @@ export default function Journals() {
         <button type="submit" className="btn-search">Search</button>
       </form>
 
+      {loadError && <p className="page-error" role="alert">{loadError}</p>}
+
       <div className="card-grid">
-        {journals.length === 0 && <div className="empty-state">No journals found. Write one!</div>}
+        {journals.length === 0 && !loadError && <div className="empty-state">No journals found. Write one!</div>}
 
         {journals.map((journal) => {
           const jid = journal.id || journal._id;
           return (
-            <div key={jid} className="card">
-              <div className="card-top">
+            <article key={jid} className="card journal-card">
+              <Link className="journal-card-hit-area" to={`/journals/${jid}`} aria-label={`Read journal: ${journal.title}`} />
+              <div className="journal-card-content">
+                <div className="card-top">
                 {journal.sportType && <span className="sport-badge">{journal.sportType}</span>}
                 <span className="status-badge status-upcoming"><FiClock /> {formatDate(journal.createdAt)}</span>
               </div>
-              <h3 className="card-title"><Link to={`/journals/${jid}`}>{journal.title}</Link></h3>
+                {journal.imageUrl && <img src={journal.imageUrl} alt="" className="card-image" loading="lazy" />}
+                <h3 className="card-title">{journal.title}</h3>
               <p className="card-desc">{journal.content?.substring(0, 220) || ''}{(journal.content || '').length > 220 ? '…' : ''}</p>
-              {journal.imageUrl && <img src={journal.imageUrl} alt="" className="card-image" />}
-              <div className="card-footer">
-                <span className="card-author"><FiEdit3 /> {journal.authorUsername}</span>
-                <div className="card-actions">
-                  {user && journal.authorId === user.id && (
-                    <button className="btn-sm btn-danger" onClick={() => handleDelete(journal.id)}><FiTrash2 /></button>
-                  )}
-                </div>
               </div>
-            </div>
+              <footer className="card-footer journal-card-footer">
+                <div className="journal-author">
+                  {journal.authorAvatarUrl
+                    ? <img src={journal.authorAvatarUrl} alt="" className="journal-author-avatar" />
+                    : <span className="journal-author-avatar journal-author-initials">{authorInitials(journal.authorDisplayName)}</span>}
+                  <span><strong>{journal.authorDisplayName || 'Unknown author'}</strong><small>{journal.authorUsername ? `@${journal.authorUsername}` : 'Author'}</small></span>
+                </div>
+                {user && journal.authorId === user.id && (
+                  <button className="btn-sm btn-danger journal-card-action" onClick={() => handleDelete(jid)} aria-label={`Delete ${journal.title}`}>
+                    <FiTrash2 />
+                  </button>
+                )}
+              </footer>
+            </article>
           );
         })}
       </div>

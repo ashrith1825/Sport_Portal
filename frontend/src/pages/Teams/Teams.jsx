@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getClubs, getTeamsByClub, createTeam, deleteTeam, removeTeamMember, joinTeam } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import { FiPlus, FiUsers, FiTrash2, FiX, FiUserPlus, FiUserMinus, FiChevronDown, FiChevronUp, FiShield } from 'react-icons/fi';
@@ -15,6 +15,8 @@ export default function Teams() {
   const [selectedClub, setSelectedClub] = useState(null);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [teamError, setTeamError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', clubId: '' });
@@ -23,7 +25,9 @@ export default function Teams() {
     try {
       const res = await getTeamsByClub(clubId);
       setTeams(res.data);
+      setTeamError('');
     } catch {
+      setTeamError('Teams could not be loaded. Refresh to try again.');
       toast.error('Failed to load teams');
     }
   };
@@ -33,6 +37,7 @@ export default function Teams() {
       try {
         const res = await getClubs();
         setClubs(res.data);
+        setLoadError('');
         
         // Auto-select club from URL or first club
         const clubIdFromUrl = searchParams.get('clubId');
@@ -45,6 +50,7 @@ export default function Teams() {
           }
         }
       } catch {
+        setLoadError('Clubs could not be loaded. Refresh to try again.');
         toast.error('Failed to load clubs');
       } finally {
         setLoading(false);
@@ -150,14 +156,16 @@ export default function Teams() {
               key={club.id}
               className={`club-chip ${selectedClub?.id === club.id ? 'active' : ''}`}
               onClick={() => handleClubSelect(club)}
+              aria-pressed={selectedClub?.id === club.id}
             >
               <FiShield />
               <span>{club.name}</span>
             </button>
           ))}
-          {clubs.length === 0 && <span className="no-clubs">No clubs available. Join or create a club first.</span>}
+          {clubs.length === 0 && !loadError && <span className="no-clubs">No clubs available. Join or create a club first.</span>}
         </div>
       </div>
+      {loadError && <p className="page-error" role="alert">{loadError}</p>}
 
       {/* Teams List */}
       {selectedClub && (
@@ -166,40 +174,48 @@ export default function Teams() {
             <h2>Teams in {selectedClub.name}</h2>
             <span className="team-count">{countLabel(teams.length, 'team')}</span>
           </div>
+          {teamError && <p className="page-error" role="alert">{teamError}</p>}
 
           {teams.map((team) => (
             <div key={team.id} className="team-card">
-              <div className="team-header" onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}>
-                <div className="team-info">
+              <div className="team-header">
+                <Link className="team-info team-info-link" to={`/teams/${team.id}`}>
                   <h3 className="team-name">{team.name}</h3>
                   <p className="team-desc">{team.description || 'No description'}</p>
                   <div className="team-meta">
                     <span><FiUsers /> {countLabel(team.memberCount, 'member')}</span>
                     <span>Captain: {team.captainUsername}</span>
                   </div>
-                </div>
+                </Link>
                 <div className="team-actions">
                   {user && !team.memberIds?.some((id) => String(id) === String(user.id || user._id)) && (
                     <button
                       className="btn-sm btn-primary"
-                      onClick={(e) => { e.stopPropagation(); handleJoin(team.id); }}
+                      onClick={() => handleJoin(team.id)}
                     >
                       <FiUserPlus /> Join team
                     </button>
                   )}
                   {user && selectedClub.ownerId === user.id && (
-                    <button className="btn-sm btn-danger" onClick={(e) => { e.stopPropagation(); handleDelete(team.id); }}>
+                    <button className="btn-sm btn-danger" onClick={() => handleDelete(team.id)} aria-label={`Delete ${team.name}`}>
                       <FiTrash2 />
                     </button>
                   )}
-                  <button className="btn-sm btn-secondary">
+                  <button
+                    type="button"
+                    className="btn-sm btn-secondary"
+                    aria-label={`${expandedTeam === team.id ? 'Collapse' : 'Expand'} ${team.name} members`}
+                    aria-expanded={expandedTeam === team.id}
+                    aria-controls={`members-${team.id}`}
+                    onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
+                  >
                     {expandedTeam === team.id ? <FiChevronUp /> : <FiChevronDown />}
                   </button>
                 </div>
               </div>
 
               {expandedTeam === team.id && (
-                <div className="team-expanded">
+                <div className="team-expanded" id={`members-${team.id}`}>
                   <div className="members-section">
                     <h4>Team Members</h4>
                     <div className="members-list">
@@ -227,7 +243,7 @@ export default function Teams() {
             </div>
           ))}
 
-          {teams.length === 0 && (
+          {teams.length === 0 && !teamError && (
             <div className="empty-state">
               <FiUsers />
               <span>No teams in this club yet</span>

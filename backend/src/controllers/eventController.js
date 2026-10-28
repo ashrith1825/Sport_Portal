@@ -1,6 +1,7 @@
 import Event from '../models/Event.js';
 import User from '../models/User.js';
 import { toEventDto } from './format.js';
+import { getEventDateError } from '../utils/eventValidation.js';
 
 async function enrichEvent(event) {
   if (!event) return null;
@@ -86,6 +87,9 @@ export async function createEvent(req, res, next) {
       return res.status(400).json({ message: 'Title, sportType, location, and eventDate are required' });
     }
 
+    const dateError = getEventDateError({ eventDate, endDate, timezoneOffsetMinutes: req.body.timezoneOffsetMinutes });
+    if (dateError) return res.status(400).json({ message: dateError });
+
     const event = await Event.create({ title, description, sportType, location, latitude, longitude, eventDate, endDate, maxParticipants, status, organizer: req.user.id, participants: [req.user.id] });
     await User.findByIdAndUpdate(req.user.id, { $addToSet: { joinedEvents: event._id } });
     return res.status(201).json(toEventDto(await enrichEvent(await Event.findById(event._id).populate('organizer', 'username'))));
@@ -112,6 +116,16 @@ export async function updateEvent(req, res, next) {
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: 'No event fields were provided' });
+    }
+
+    if (updates.eventDate !== undefined || updates.endDate !== undefined) {
+      const dateError = getEventDateError({
+        eventDate: updates.eventDate ?? event.eventDate,
+        endDate: updates.endDate === undefined ? event.endDate : updates.endDate,
+        timezoneOffsetMinutes: req.body.timezoneOffsetMinutes,
+        checkCurrentDay: updates.status !== 'COMPLETED' && event.status !== 'COMPLETED',
+      });
+      if (dateError) return res.status(400).json({ message: dateError });
     }
 
     await Event.findByIdAndUpdate(req.params.id, updates);

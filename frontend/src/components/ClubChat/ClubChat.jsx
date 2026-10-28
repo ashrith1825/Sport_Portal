@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getClubMessages, postClubMessage, deleteClubMessage, getClub } from '../../api/services';
 import { useAuth } from '../../context/AuthContextObject';
 import toast from 'react-hot-toast';
@@ -19,15 +19,22 @@ function normalizeMessages(items, userId) {
 export default function ClubChat({ clubId, open }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
+  const [loadedClubId, setLoadedClubId] = useState(null);
   const [club, setClub] = useState(null);
+  const loadSequence = useRef(0);
+  const visibleMessages = loadedClubId === clubId ? messages : [];
 
   useEffect(() => {
     let mounted = true;
     async function load() {
       if (!clubId) return;
+      const sequence = ++loadSequence.current;
       try {
         const response = await getClubMessages(clubId, 200);
-        if (mounted) setMessages(normalizeMessages(response.data || [], user?.id));
+        if (mounted && sequence === loadSequence.current) {
+          setMessages(normalizeMessages(response.data || [], user?.id));
+          setLoadedClubId(clubId);
+        }
       } catch {
         if (mounted) toast.error('failed to load club chat');
       }
@@ -51,11 +58,15 @@ export default function ClubChat({ clubId, open }) {
 
   const send = async (text) => {
     try {
-      await postClubMessage(clubId, text);
-      const response = await getClubMessages(clubId, 200);
-      setMessages(normalizeMessages(response.data || [], user?.id));
+      const response = await postClubMessage(clubId, text);
+      const message = normalizeMessages([response.data], user?.id)[0];
+      loadSequence.current += 1;
+      setMessages((current) => [...current.filter((item) => item.id !== message.id), message]);
+      setLoadedClubId(clubId);
+      return true;
     } catch (error) {
       toast.error(error?.response?.data?.message || 'failed to send message');
+      return false;
     }
   };
 
@@ -77,7 +88,7 @@ export default function ClubChat({ clubId, open }) {
         avatarUrl: club?.logoUrl,
         memberCount: club?.memberCount || club?.members?.length,
       }}
-      messages={messages}
+      messages={visibleMessages}
       currentUserId={user?.id}
       onSend={send}
       onDelete={remove}

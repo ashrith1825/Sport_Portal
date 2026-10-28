@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { FiMessageSquare, FiSend, FiUsers } from 'react-icons/fi';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FiMessageSquare, FiSend, FiUsers, FiX } from 'react-icons/fi';
 import { countLabel } from '../../utils/countLabel';
 import './ChatSidebar.css';
 
@@ -23,11 +23,18 @@ export default function ChatSidebar({
   currentUserId,
   onSend,
   onDelete,
+  onClose,
+  isSending = false,
   isOpen,
 }) {
   const [drafts, setDrafts] = useState({});
-  const inputRef = useRef(null);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const chatKey = `${mode}:${participant?.id || 'empty'}`;
+  const inputRef = useRef(null);
+  const historyRef = useRef(null);
+  const wasAtBottom = useRef(true);
+  const previousChatKey = useRef(chatKey);
   const draft = drafts[chatKey] || '';
 
   const isVisible = typeof isOpen === 'boolean' ? isOpen : true;
@@ -36,22 +43,55 @@ export default function ChatSidebar({
     if (isVisible) inputRef.current?.focus();
   }, [chatKey, isVisible]);
 
+  const latestMessageKey = messages.length ? messageKey(messages[messages.length - 1]) : '';
+  useLayoutEffect(() => {
+    const history = historyRef.current;
+    if (!history) return;
+    if (previousChatKey.current !== chatKey) {
+      previousChatKey.current = chatKey;
+      wasAtBottom.current = true;
+      history.scrollTop = history.scrollHeight;
+    } else if (wasAtBottom.current) {
+      history.scrollTop = history.scrollHeight;
+    }
+  }, [chatKey, latestMessageKey, messages.length]);
+
   const updateDraft = (value) => {
     setDrafts((current) => ({ ...current, [chatKey]: value }));
   };
 
-  const send = (event) => {
+  const send = async (event) => {
     event.preventDefault();
     const value = draft.trim();
-    if (!value || !isVisible) return;
-    onSend(value);
-    updateDraft('');
+    if (!value || !isVisible || sending || isSending) return;
+    setSending(true);
+    setSendError('');
+    try {
+      const succeeded = await onSend(value);
+      if (succeeded === false) {
+        setSendError('Message could not be sent. Your draft is still here.');
+        return;
+      }
+      updateDraft('');
+      if (inputRef.current) inputRef.current.style.height = 'auto';
+    } catch {
+      setSendError('Message could not be sent. Your draft is still here.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleComposerKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
   };
 
   const title = participant?.name || (mode === 'club' ? 'club chat' : 'friend chat');
   const subtitle = mode === 'club'
     ? countLabel(participant?.memberCount, 'member')
-    : (participant?.isOnline ? 'online now' : 'offline');
+    : 'Direct messages';
 
   if (!isVisible) return null;
 
@@ -73,20 +113,31 @@ export default function ChatSidebar({
           )}
           <div>
             <h2>{title}</h2>
-            <p className={mode === 'friend' ? (participant?.isOnline ? 'is-online' : 'is-offline') : ''}>
-              {mode === 'friend' && <span className="chat-status-dot" />}
-              {subtitle}
-            </p>
+            <p>{subtitle}</p>
           </div>
         </div>
+        {onClose && (
+          <button type="button" className="chat-close" onClick={onClose} aria-label="Close chat">
+            <FiX />
+          </button>
+        )}
       </header>
 
-      <div className="chat-sidebar-body" role="log" aria-live="polite">
+      <div
+        className="chat-sidebar-body"
+        ref={historyRef}
+        role="log"
+        aria-live="polite"
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          wasAtBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 56;
+        }}
+      >
         {messages.length === 0 && (
           <div className="chat-empty">
             <FiMessageSquare />
-            <strong>say hi first</strong>
-            <span>your next good conversation starts here.</span>
+            <strong>Start the conversation</strong>
+            <span>Send a message to get things moving.</span>
           </div>
         )}
         {messages.map((message, index) => {
@@ -113,17 +164,25 @@ export default function ChatSidebar({
         })}
       </div>
 
-      <form className="chat-sidebar-input" onSubmit={send}>
-        <input
+      <form className="chat-sidebar-composer" onSubmit={send} aria-busy={sending || isSending}>
+        <textarea
           ref={inputRef}
+          rows={1}
           value={draft}
-          onChange={(event) => updateDraft(event.target.value)}
-          placeholder="write a message..."
+          onChange={(event) => {
+            updateDraft(event.target.value);
+            setSendError('');
+            event.currentTarget.style.height = 'auto';
+            event.currentTarget.style.height = `${Math.min(event.currentTarget.scrollHeight, 128)}px`;
+          }}
+          onKeyDown={handleComposerKeyDown}
+          placeholder="Write a message..."
           aria-label="Write a message"
         />
-        <button type="submit" disabled={!draft.trim()} aria-label="Send message">
+        <button type="submit" disabled={!draft.trim() || sending || isSending} aria-label="Send message">
           <FiSend />
         </button>
+        {sendError && <p className="chat-send-error" role="alert">{sendError}</p>}
       </form>
     </aside>
   );

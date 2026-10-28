@@ -1,24 +1,15 @@
-/* ============================================
-   LAYOUT - PROFESSIONAL DESIGN
-   ============================================ */
-
 .layout {
-  min-height: 100vh;
-  background: var(--bg-primary);
-  display: flex;
-  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--page-bg);
 }
 
 .main-content {
-  flex: 1;
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-  padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 5vw, 4rem) 5rem;
+  width: min(100%, 1440px);
+  min-height: calc(100dvh - 64px);
+  margin-inline: auto;
+  padding: 24px clamp(16px, 3vw, 40px) 40px;
 }
 
-@media (max-width: 768px) {
-  .main-content {
-    padding: var(--space-5) var(--space-4);
-  }
+@media (max-width: 640px) {
+  .main-content { padding: 18px 14px 28px; }
 }

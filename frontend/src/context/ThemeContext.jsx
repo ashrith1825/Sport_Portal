@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { ThemeContext } from './ThemeContextObject';
 
 export function ThemeProvider({ children }) {
@@ -10,7 +10,7 @@ export function ThemeProvider({ children }) {
     }
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       localStorage.setItem('sport_portal_theme', theme);
     } catch {
